@@ -1,0 +1,9 @@
+{
+  "backing_partuuid": "00000000-0000-0000-0000-000000000000",
+  "parent_ptuuid": "00000000-0000-0000-0000-000000000000",
+  "start_sector_512": 1,
+  "size_sector_512": 1,
+  "logical_block_size": 4096,
+  "virtual_serial": "0000000000000000",
+  "readonly": true
+}

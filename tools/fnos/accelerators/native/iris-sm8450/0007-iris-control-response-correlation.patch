@@ -1,0 +1,307 @@
+--- a/iris_hfi_common.h
++++ b/iris_hfi_common.h
+@@ -6,6 +6,8 @@
+ #ifndef __IRIS_HFI_COMMON_H__
+ #define __IRIS_HFI_COMMON_H__
+ 
++#include <linux/errno.h>
++#include <linux/spinlock.h>
+ #include <linux/types.h>
+ #include <media/v4l2-device.h>
+ 
+@@ -13,6 +15,79 @@
+ 
+ struct iris_inst;
+ struct iris_core;
++
++/* Correlation metadata does not change the firmware packet layout. */
++struct iris_hfi_pending {
++	spinlock_t lock;
++	u32 packet_id;
++	u32 type;
++	u32 port;
++	bool active;
++	bool responded;
++};
++
++static inline void iris_hfi_pending_init(struct iris_hfi_pending *pending)
++{
++	spin_lock_init(&pending->lock);
++	pending->active = false;
++	pending->responded = false;
++}
++
++static inline int iris_hfi_pending_begin(struct iris_hfi_pending *pending,
++					u32 packet_id, u32 type, u32 port)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&pending->lock, flags);
++	if (pending->active) {
++		ret = -EBUSY;
++	} else {
++		pending->packet_id = packet_id;
++		pending->type = type;
++		pending->port = port;
++		pending->active = true;
++		pending->responded = false;
++	}
++	spin_unlock_irqrestore(&pending->lock, flags);
++	return ret;
++}
++
++static inline bool iris_hfi_pending_match(struct iris_hfi_pending *pending,
++					 u32 packet_id, u32 type, u32 port)
++{
++	unsigned long flags;
++	bool matched;
++
++	spin_lock_irqsave(&pending->lock, flags);
++	matched = pending->active && !pending->responded && pending->packet_id == packet_id &&
++		pending->type == type && pending->port == port;
++	if (matched)
++		pending->responded = true;
++	spin_unlock_irqrestore(&pending->lock, flags);
++	return matched;
++}
++
++static inline bool iris_hfi_pending_active(struct iris_hfi_pending *pending)
++{
++	unsigned long flags;
++	bool active;
++
++	spin_lock_irqsave(&pending->lock, flags);
++	active = pending->active;
++	spin_unlock_irqrestore(&pending->lock, flags);
++	return active;
++}
++
++static inline void iris_hfi_pending_cancel(struct iris_hfi_pending *pending)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pending->lock, flags);
++	pending->active = false;
++	pending->responded = false;
++	spin_unlock_irqrestore(&pending->lock, flags);
++}
+ 
+ enum hfi_packet_port_type {
+ 	HFI_PORT_NONE		= 0x00000000,
+--- a/iris_core.h
++++ b/iris_core.h
+@@ -111,6 +111,7 @@
+ 	const struct iris_hfi_command_ops	*hfi_ops;
+ 	const struct iris_hfi_response_ops	*hfi_response_ops;
+ 	struct completion			core_init_done;
++	struct iris_hfi_pending			init_pending;
+ 	u32					intr_status;
+ 	struct delayed_work			sys_error_handler;
+ 	struct list_head			instances;
+--- a/iris_instance.h
++++ b/iris_instance.h
+@@ -87,6 +87,7 @@
+ 	struct iris_hfi_rect_desc	crop;
+ 	struct iris_hfi_rect_desc	compose;
+ 	struct completion		completion;
++	struct iris_hfi_pending		control_pending;
+ 	struct completion		flush_completion;
+ 	u32				flush_responses_pending;
+ 	struct platform_inst_fw_cap	fw_caps[INST_FW_CAP_MAX];
+--- a/iris_hfi_gen2_command.c
++++ b/iris_hfi_gen2_command.c
+@@ -23,15 +23,29 @@
+ static int iris_hfi_gen2_sys_init(struct iris_core *core)
+ {
+ 	struct iris_hfi_header *hdr;
++	struct iris_hfi_packet *packet;
+ 	int ret;
+ 
+ 	hdr = kzalloc(SYS_INIT_PKT_SIZE, GFP_KERNEL);
+ 	if (!hdr)
+ 		return -ENOMEM;
+ 
++	if (core->packet_id > U32_MAX - NUM_SYS_INIT_PACKETS) {
++		kfree(hdr);
++		return -EOVERFLOW;
++	}
+ 	iris_hfi_gen2_packet_sys_init(core, hdr);
++	packet = (struct iris_hfi_packet *)((u8 *)hdr + sizeof(*hdr));
++	ret = iris_hfi_pending_begin(&core->init_pending, packet->packet_id,
++				    HFI_CMD_INIT, HFI_PORT_NONE);
++	if (ret) {
++		kfree(hdr);
++		return ret;
++	}
+ 	ret = iris_hfi_queue_cmd_write_locked(core, hdr, hdr->size);
+ 
++	if (ret)
++		iris_hfi_pending_cancel(&core->init_pending);
+ 	kfree(hdr);
+ 
+ 	return ret;
+@@ -713,10 +727,16 @@
+ static int iris_hfi_gen2_session_close(struct iris_inst *inst)
+ {
+ 	struct iris_inst_hfi_gen2 *inst_hfi_gen2 = to_iris_inst_hfi_gen2(inst);
++	struct iris_hfi_packet *packet;
+ 	int ret;
+ 
+ 	if (!inst_hfi_gen2->packet)
+ 		return -EINVAL;
++
++	if (inst_hfi_gen2->packet->size > 4096 || inst->core->packet_id == U32_MAX)
++		return -EOVERFLOW;
++	if (iris_hfi_pending_active(&inst->control_pending))
++		return -EBUSY;
+ 
+ 	iris_hfi_gen2_packet_session_command(inst,
+ 					     HFI_CMD_CLOSE,
+@@ -729,9 +749,17 @@
+ 					     NULL,
+ 					     0);
+ 
++	packet = (struct iris_hfi_packet *)((u8 *)inst_hfi_gen2->packet +
++					 sizeof(struct iris_hfi_header));
++	ret = iris_hfi_pending_begin(&inst->control_pending, packet->packet_id,
++				    packet->type, packet->port);
++	if (ret)
++		return ret;
+ 	ret = iris_hfi_queue_cmd_write(inst->core, inst_hfi_gen2->packet,
+ 				       inst_hfi_gen2->packet->size);
+ 
++	if (ret)
++		iris_hfi_pending_cancel(&inst->control_pending);
+ 	kfree(inst_hfi_gen2->packet);
+ 	inst_hfi_gen2->packet = NULL;
+ 
+@@ -976,10 +1004,16 @@
+ static int iris_hfi_gen2_session_stop(struct iris_inst *inst, u32 plane)
+ {
+ 	struct iris_inst_hfi_gen2 *inst_hfi_gen2 = to_iris_inst_hfi_gen2(inst);
++	struct iris_hfi_packet *packet;
+ 	int ret = 0;
+ 
+ 	if (!inst_hfi_gen2->packet)
+ 		return -EINVAL;
++
++	if (inst_hfi_gen2->packet->size > 4096 || inst->core->packet_id == U32_MAX)
++		return -EOVERFLOW;
++	if (iris_hfi_pending_active(&inst->control_pending))
++		return -EBUSY;
+ 
+ 	reinit_completion(&inst->completion);
+ 
+@@ -994,10 +1028,18 @@
+ 					     NULL,
+ 					     0);
+ 
++	packet = (struct iris_hfi_packet *)((u8 *)inst_hfi_gen2->packet +
++					 sizeof(struct iris_hfi_header));
++	ret = iris_hfi_pending_begin(&inst->control_pending, packet->packet_id,
++				    packet->type, packet->port);
++	if (ret)
++		return ret;
+ 	ret = iris_hfi_queue_cmd_write(inst->core, inst_hfi_gen2->packet,
+ 				       inst_hfi_gen2->packet->size);
+-	if (ret)
++	if (ret) {
++		iris_hfi_pending_cancel(&inst->control_pending);
+ 		return ret;
++	}
+ 
+ 	return iris_wait_for_session_response(inst, false);
+ }
+--- a/iris_hfi_gen2_response.c
++++ b/iris_hfi_gen2_response.c
+@@ -307,6 +307,7 @@
+ 		dev_err(core->dev, "received system error of type %#x\n", pkt->type);
+ 
+ 	core->state = IRIS_CORE_ERROR;
++	iris_hfi_pending_cancel(&core->init_pending);
+ 	complete(&core->core_init_done);
+ 
+ 	mutex_lock(&core->lock);
+@@ -327,6 +328,8 @@
+ {
+ 	if (pkt->type != HFI_CMD_INIT || core->state != IRIS_CORE_INIT)
+ 		return -EINVAL;
++	if (!iris_hfi_pending_match(&core->init_pending, pkt->packet_id, pkt->type, pkt->port))
++		return 0;
+ 	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS))
+ 		core->state = IRIS_CORE_ERROR;
+ 	complete(&core->core_init_done);
+@@ -336,6 +339,9 @@
+ static void iris_hfi_gen2_handle_session_close(struct iris_inst *inst,
+ 					       struct iris_hfi_packet *pkt)
+ {
++	if (!iris_hfi_pending_match(&inst->control_pending, pkt->packet_id, pkt->type, pkt->port))
++		return;
++
+ 	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS))
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+ 	complete(&inst->completion);
+@@ -479,6 +485,9 @@
+ 					     struct iris_hfi_packet *pkt)
+ {
+ 	int ret = 0;
++	if (!iris_hfi_pending_match(&inst->control_pending, pkt->packet_id, pkt->type, pkt->port))
++		return 0;
++
+ 
+ 	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS)) {
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+--- a/iris_core.c
++++ b/iris_core.c
+@@ -38,9 +38,11 @@
+ 					  msecs_to_jiffies(hw_response_timeout_val));
+ 	if (!ret) {
+ 		core->state = IRIS_CORE_ERROR;
++		iris_hfi_pending_cancel(&core->init_pending);
+ 		return -ETIMEDOUT;
+ 	}
+ 
++	iris_hfi_pending_cancel(&core->init_pending);
+ 	return core->state == IRIS_CORE_ERROR ? -EIO : 0;
+ }
+ 
+@@ -57,6 +59,7 @@
+ 		goto error;
+ 	}
+ 
++	iris_hfi_pending_cancel(&core->init_pending);
+ 	reinit_completion(&core->core_init_done);
+ 	core->state = IRIS_CORE_INIT;
+ 
+--- a/iris_utils.c
++++ b/iris_utils.c
+@@ -86,6 +86,8 @@
+ 	mutex_unlock(&inst->lock);
+ 	ret = wait_for_completion_timeout(done, msecs_to_jiffies(hw_response_timeout_val));
+ 	mutex_lock(&inst->lock);
++	if (!is_flush)
++		iris_hfi_pending_cancel(&inst->control_pending);
+ 	if (!ret) {
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+ 		return -ETIMEDOUT;
+--- a/iris_probe.c
++++ b/iris_probe.c
+@@ -234,6 +234,7 @@
+ 	core->state = IRIS_CORE_DEINIT;
+ 	mutex_init(&core->lock);
+ 	init_completion(&core->core_init_done);
++	iris_hfi_pending_init(&core->init_pending);
+ 
+ 	core->response_packet = devm_kzalloc(core->dev, IFACEQ_CORE_PKT_SIZE, GFP_KERNEL);
+ 	if (!core->response_packet)
+--- a/iris_vidc.c
++++ b/iris_vidc.c
+@@ -179,6 +179,7 @@
+ 	INIT_LIST_HEAD(&inst->buffers[BUF_SCRATCH_2].list);
+ 	INIT_LIST_HEAD(&inst->buffers[BUF_VPSS].list);
+ 	init_completion(&inst->completion);
++	iris_hfi_pending_init(&inst->control_pending);
+ 	init_completion(&inst->flush_completion);
+ 
+ 	iris_v4l2_fh_init(inst, filp);

@@ -1,0 +1,16 @@
+{
+  "counts": {
+    "verified": 57,
+    "research": 57,
+    "clients": 8,
+    "pid1": 31
+  },
+  "test_original_sha256": {
+    "response_test": "3ba2f5fa1ca8749e2a0c1e50031a25cc80195fc6fa0fe08aa76b554019694e23",
+    "wrapper_test": "f14b4507f4361ff71fd881d027c9a7d54cbc12d3d9f01b59e6026a4c3b1884c7",
+    "cold_power_test": "366d5d6b719545be625835fe400965f8aa2423e5183eef6633c21ecd1d22d80c",
+    "historical_bad_checked_body_sha256": "a5864bfb1285085d98ba04efa053832788ab22232c532e66a7bdd14e9b3d7fce"
+  },
+  "original_sources_unchanged": true,
+  "license_noassertion_files": []
+}

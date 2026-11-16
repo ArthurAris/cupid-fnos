@@ -1,0 +1,435 @@
+--- a/iris_buffer.c
++++ b/iris_buffer.c
+@@ -312,6 +312,78 @@
+ 	return ALIGN(bitstream_size, 4096);
+ }
+ 
++int iris_calc_capture_layout(u32 format, u32 width, u32 height,
++			     struct iris_capture_layout *layout)
++{
++	struct iris_capture_layout result = {0};
++	u64 stride, y, uv, meta_y = 0, meta_uv = 0, size;
++	u32 w_align = 128, h_align = 32;
++
++	if (!layout || !width || !height || width > 8192 || height > 8192)
++		return -EINVAL;
++	if (format == V4L2_PIX_FMT_QC10C) {
++		w_align = 192;
++		h_align = 16;
++	} else if (format != V4L2_PIX_FMT_NV12 && format != V4L2_PIX_FMT_QC08C &&
++		   format != V4L2_PIX_FMT_P010) {
++		return -EINVAL;
++	}
++	result.width = DIV_ROUND_UP(width, w_align) * w_align;
++	result.height = DIV_ROUND_UP(height, h_align) * h_align;
++	stride = result.width;
++	if (format == V4L2_PIX_FMT_P010)
++		stride *= 2;
++	else if (format == V4L2_PIX_FMT_QC10C)
++		stride = ALIGN(stride * 4 / 3, 256);
++	result.stride = stride;
++	result.y_scanlines = result.height;
++	result.uv_scanlines = ALIGN(DIV_ROUND_UP(result.height, 2),
++				    format == V4L2_PIX_FMT_QC08C ? 32 : 16);
++	y = stride * result.y_scanlines;
++	uv = stride * result.uv_scanlines;
++	if (format == V4L2_PIX_FMT_QC08C || format == V4L2_PIX_FMT_QC10C) {
++		u32 tile_width = format == V4L2_PIX_FMT_QC08C ? 32 : 48;
++		u32 tile_height = format == V4L2_PIX_FMT_QC08C ? 8 : 4;
++
++		meta_y = (u64)ALIGN(DIV_ROUND_UP(result.width, tile_width), 64) *
++			ALIGN(DIV_ROUND_UP(result.height, tile_height), 16);
++		meta_uv = (u64)ALIGN(DIV_ROUND_UP(DIV_ROUND_UP(result.width, 2),
++						 tile_width / 2), 64) *
++			ALIGN(DIV_ROUND_UP(DIV_ROUND_UP(result.height, 2), tile_height), 16);
++		y = ALIGN(y, 4096);
++		uv = ALIGN(uv, 4096);
++		meta_y = ALIGN(meta_y, 4096);
++		meta_uv = ALIGN(meta_uv, 4096);
++	}
++	size = ALIGN(y + uv + meta_y + meta_uv, 4096);
++	if (stride > 65535 || result.height > 65535 || size > 0xffffffffULL)
++		return -EOVERFLOW;
++	result.size = size;
++	*layout = result;
++	return 0;
++}
++
++int iris_apply_capture_layout(struct iris_inst *inst, u32 width, u32 height)
++{
++	struct v4l2_pix_format_mplane *fmt = &inst->fmt_dst->fmt.pix_mp;
++	struct iris_capture_layout layout;
++	int ret;
++
++	if (inst->core->iris_platform_data->prototype_restricted &&
++	    fmt->pixelformat != V4L2_PIX_FMT_NV12)
++		return -EOPNOTSUPP;
++	ret = iris_calc_capture_layout(fmt->pixelformat, width, height, &layout);
++	if (ret)
++		return ret;
++	fmt->width = layout.width;
++	fmt->height = layout.height;
++	fmt->num_planes = 1;
++	fmt->plane_fmt[0].bytesperline = layout.stride;
++	fmt->plane_fmt[0].sizeimage = layout.size;
++	inst->buffers[BUF_OUTPUT].size = layout.size;
++	return 0;
++}
++
+ int iris_get_buffer_size(struct iris_inst *inst,
+ 			 enum iris_buffer_type buffer_type)
+ {
+@@ -319,17 +391,13 @@
+ 		switch (buffer_type) {
+ 		case BUF_INPUT:
+ 			return iris_dec_bitstream_buffer_size(inst);
+-		case BUF_OUTPUT:
+-			switch (inst->fmt_dst->fmt.pix_mp.pixelformat) {
+-			case V4L2_PIX_FMT_QC08C:
+-				return iris_yuv_buffer_size_qc08c(inst);
+-			case V4L2_PIX_FMT_QC10C:
+-				return iris_yuv_buffer_size_qc10c(inst);
+-			case V4L2_PIX_FMT_P010:
+-				return iris_yuv_buffer_size_p010(inst);
+-			default:
+-				return iris_yuv_buffer_size_nv12(inst);
+-			}
++		case BUF_OUTPUT: {
++			struct v4l2_pix_format_mplane *fmt = &inst->fmt_dst->fmt.pix_mp;
++			struct iris_capture_layout layout;
++			int ret = iris_calc_capture_layout(fmt->pixelformat, fmt->width, fmt->height, &layout);
++
++			return ret ? ret : (int)layout.size;
++		}
+ 		case BUF_DPB:
+ 			if (iris_fmt_is_10bit(inst->fmt_dst->fmt.pix_mp.pixelformat))
+ 				return iris_yuv_buffer_size_qc10c(inst);
+@@ -337,16 +405,15 @@
+ 		default:
+ 			return 0;
+ 		}
+-	} else {
+-		switch (buffer_type) {
+-		case BUF_INPUT:
+-			return iris_yuv_buffer_size_nv12(inst);
+-		case BUF_OUTPUT:
+-			return iris_enc_bitstream_buffer_size(inst);
+-		default:
+-			return 0;
+-		}
+-	}
++	}
++	if (buffer_type == BUF_INPUT) {
++		if (inst->fmt_src->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_P010)
++			return iris_yuv_buffer_size_p010(inst);
++		return iris_yuv_buffer_size_nv12(inst);
++	}
++	if (buffer_type == BUF_OUTPUT)
++		return iris_enc_bitstream_buffer_size(inst);
++	return 0;
+ }
+ 
+ static void iris_fill_internal_buf_info(struct iris_inst *inst,
+--- a/iris_buffer.h
++++ b/iris_buffer.h
+@@ -105,6 +105,12 @@
+ 	u32			size;
+ };
+ 
++struct iris_capture_layout {
++	u32 width, height, stride, y_scanlines, uv_scanlines, size;
++};
++
++int iris_calc_capture_layout(u32 format, u32 width, u32 height, struct iris_capture_layout *layout);
++int iris_apply_capture_layout(struct iris_inst *inst, u32 width, u32 height);
+ int iris_get_buffer_size(struct iris_inst *inst, enum iris_buffer_type buffer_type);
+ void iris_get_internal_buffers(struct iris_inst *inst, u32 plane);
+ int iris_create_internal_buffers(struct iris_inst *inst, u32 plane);
+--- a/iris_vdec.c
++++ b/iris_vdec.c
+@@ -93,7 +93,8 @@
+ {
+ 	unsigned int i;
+ 
+-	(void)inst;
++	if (inst->core->iris_platform_data->prototype_restricted && pixfmt != V4L2_PIX_FMT_NV12)
++		return false;
+ 	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		return false;
+ 
+@@ -111,6 +112,7 @@
+ 	const struct iris_fmt *fmt = iris_vdec_formats;
+ 	unsigned int i;
+ 
++	(void)inst;
+ 	for (i = 0; i < size; i++) {
+ 		if (fmt[i].pixfmt == pixfmt)
+ 			break;
+@@ -128,6 +130,7 @@
+ 	const struct iris_fmt *fmt = iris_vdec_formats;
+ 	unsigned int size = ARRAY_SIZE(iris_vdec_formats);
+ 
++	(void)inst;
+ 	if (index >= size || fmt[index].type != type)
+ 		return NULL;
+ 
+@@ -148,6 +151,8 @@
+ 		f->flags = V4L2_FMT_FLAG_COMPRESSED | V4L2_FMT_FLAG_DYN_RESOLUTION;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		if (inst->core->iris_platform_data->prototype_restricted && f->index)
++			return -EINVAL;
+ 		if (f->index >= ARRAY_SIZE(iris_vdec_formats_cap))
+ 			return -EINVAL;
+ 		f->pixelformat = iris_vdec_formats_cap[f->index];
+@@ -180,6 +185,9 @@
+ 		}
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		if (inst->core->iris_platform_data->prototype_restricted &&
++		    f->fmt.pix_mp.pixelformat != V4L2_PIX_FMT_NV12)
++			return -EOPNOTSUPP;
+ 		if (!check_format(inst, f->fmt.pix_mp.pixelformat, f->type)) {
+ 			f_inst = inst->fmt_dst;
+ 			f->fmt.pix_mp.pixelformat = f_inst->fmt.pix_mp.pixelformat;
+@@ -202,7 +210,17 @@
+ 		pixmp->field = V4L2_FIELD_NONE;
+ 
+ 	pixmp->num_planes = 1;
+-
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		struct iris_capture_layout layout;
++		int ret = iris_calc_capture_layout(pixmp->pixelformat, pixmp->width, pixmp->height, &layout);
++
++		if (ret)
++			return ret;
++		pixmp->width = layout.width;
++		pixmp->height = layout.height;
++		pixmp->plane_fmt[0].bytesperline = layout.stride;
++		pixmp->plane_fmt[0].sizeimage = layout.size;
++	}
+ 	return 0;
+ }
+ 
+@@ -211,6 +229,7 @@
+ 	struct v4l2_format *fmt, *output_fmt;
+ 	struct vb2_queue *q;
+ 	u32 codec_align;
++	int ret;
+ 
+ 	q = v4l2_m2m_get_vq(inst->m2m_ctx, f->type);
+ 	if (!q)
+@@ -227,7 +246,9 @@
+ 		f->fmt.pix_mp.height = DEFAULT_HEIGHT;
+ 	}
+ 
+-	iris_vdec_try_fmt(inst, f);
++	ret = iris_vdec_try_fmt(inst, f);
++	if (ret)
++		return ret;
+ 
+ 	switch (f->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+@@ -259,9 +280,9 @@
+ 		output_fmt->fmt.pix_mp.quantization = f->fmt.pix_mp.quantization;
+ 
+ 		/* Update capture format based on new ip w/h */
+-		output_fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
+-		output_fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
+-		inst->buffers[BUF_OUTPUT].size = iris_get_buffer_size(inst, BUF_OUTPUT);
++		ret = iris_apply_capture_layout(inst, f->fmt.pix_mp.width, f->fmt.pix_mp.height);
++		if (ret)
++			return ret;
+ 
+ 		inst->crop.left = 0;
+ 		inst->crop.top = 0;
+@@ -276,28 +297,9 @@
+ 		fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+ 		fmt->fmt.pix_mp.pixelformat = f->fmt.pix_mp.pixelformat;
+ 		fmt->fmt.pix_mp.num_planes = 1;
+-		switch (f->fmt.pix_mp.pixelformat) {
+-		case V4L2_PIX_FMT_P010:
+-			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
+-			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
+-			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
+-				ALIGN(f->fmt.pix_mp.width * 2, 256);
+-			break;
+-		case V4L2_PIX_FMT_QC10C:
+-			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 192);
+-			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 16);
+-			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
+-				ALIGN(f->fmt.pix_mp.width * 4 / 3, 256);
+-			break;
+-		case V4L2_PIX_FMT_NV12:
+-		case V4L2_PIX_FMT_QC08C:
+-			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
+-			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
+-			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
+-				ALIGN(f->fmt.pix_mp.width, 128);
+-			break;
+-		}
+-		fmt->fmt.pix_mp.plane_fmt[0].sizeimage = iris_get_buffer_size(inst, BUF_OUTPUT);
++		ret = iris_apply_capture_layout(inst, f->fmt.pix_mp.width, f->fmt.pix_mp.height);
++		if (ret)
++			return ret;
+ 		inst->buffers[BUF_OUTPUT].min_count = iris_vpu_buf_count(inst, BUF_OUTPUT);
+ 		inst->buffers[BUF_OUTPUT].size = fmt->fmt.pix_mp.plane_fmt[0].sizeimage;
+ 
+--- a/iris_venc.c
++++ b/iris_venc.c
+@@ -18,6 +18,9 @@
+ {
+ 	struct iris_core *core = inst->core;
+ 	struct v4l2_format *f;
++
++	if (core->iris_platform_data->prototype_restricted)
++		return -EOPNOTSUPP;
+ 
+ 	inst->fmt_src = kzalloc(sizeof(*inst->fmt_src), GFP_KERNEL);
+ 	inst->fmt_dst  = kzalloc(sizeof(*inst->fmt_dst), GFP_KERNEL);
+--- a/iris_hfi_gen2_command.c
++++ b/iris_hfi_gen2_command.c
+@@ -427,6 +427,10 @@
+ 	u32 port = iris_hfi_gen2_get_port(inst, plane);
+ 	u32 hfi_colorformat, pixelformat;
+ 
++	if (inst->core->iris_platform_data->prototype_restricted &&
++	    (inst->domain == ENCODER || inst->fmt_dst->fmt.pix_mp.pixelformat != V4L2_PIX_FMT_NV12))
++		return -EOPNOTSUPP;
++
+ 	if (inst->domain == DECODER) {
+ 		pixelformat = inst->fmt_dst->fmt.pix_mp.pixelformat;
+ 		switch (pixelformat) {
+@@ -476,7 +480,7 @@
+ 
+ 	if (inst->domain == DECODER) {
+ 		pixelformat = inst->fmt_dst->fmt.pix_mp.pixelformat;
+-		stride_y = inst->fmt_dst->fmt.pix_mp.width;
++		stride_y = inst->fmt_dst->fmt.pix_mp.plane_fmt[0].bytesperline;
+ 		scanline_y = inst->fmt_dst->fmt.pix_mp.height;
+ 	} else {
+ 		pixelformat = inst->fmt_src->fmt.pix_mp.pixelformat;
+@@ -485,11 +489,14 @@
+ 	}
+ 
+ 	stride_uv = stride_y;
+-	scanline_uv = scanline_y / 2;
++	scanline_uv = ALIGN(DIV_ROUND_UP(scanline_y, 2), 16);
+ 
+ 	if (pixelformat != V4L2_PIX_FMT_NV12 &&
+ 	    pixelformat != V4L2_PIX_FMT_P010)
+ 		return 0;
++
++	if (!stride_y || stride_y > 65535 || scanline_y > 65535 || scanline_uv > 65535)
++		return -EINVAL;
+ 
+ 	payload[0] = stride_y << 16 | scanline_y;
+ 	payload[1] = stride_uv << 16 | scanline_uv;
+--- a/iris_hfi_gen2_response.c
++++ b/iris_hfi_gen2_response.c
+@@ -48,7 +48,7 @@
+ 	case HFI_BUFFER_LINE:
+ 		return BUF_LINE;
+ 	case HFI_BUFFER_DPB:
+-		if (inst->domain == DECODER)
++		if (inst->domain == DECODER || inst->core->iris_platform_data->no_opb)
+ 			return BUF_DPB;
+ 		else
+ 			return BUF_SCRATCH_2;
+@@ -570,13 +570,23 @@
+ 	height = subsc_params.bitstream_resolution &
+ 		HFI_BITMASK_BITSTREAM_HEIGHT;
+ 
++	if (!width || !height || width > 8192 || height > 8192 ||
++	    subsc_params.bit_depth != BIT_DEPTH_8 ||
++	    !(subsc_params.coded_frames & HFI_BITMASK_FRAME_MBS_ONLY_FLAG) ||
++	    (subsc_params.crop_offsets[0] & 0xffff) +
++	    (subsc_params.crop_offsets[1] & 0xffff) >= height ||
++	    (subsc_params.crop_offsets[0] >> 16) +
++	    (subsc_params.crop_offsets[1] >> 16) >= width) {
++		iris_inst_change_state(inst, IRIS_INST_ERROR);
++		return;
++	}
+ 	pixmp_ip->width = width;
+ 	pixmp_ip->height = height;
+ 
+-	pixmp_op->width = ALIGN(width, 128);
+-	pixmp_op->height = ALIGN(height, 32);
+-	pixmp_op->plane_fmt[0].bytesperline = ALIGN(width, 128);
+-	pixmp_op->plane_fmt[0].sizeimage = iris_get_buffer_size(inst, BUF_OUTPUT);
++	if (iris_apply_capture_layout(inst, width, height)) {
++		iris_inst_change_state(inst, IRIS_INST_ERROR);
++		return;
++	}
+ 
+ 	matrix_coeff = subsc_params.color_info & 0xFF;
+ 	transfer_char = (subsc_params.color_info & 0xFF00) >> 8;
+--- a/iris_vpu_buffer.c
++++ b/iris_vpu_buffer.c
+@@ -1429,42 +1429,10 @@
+ static u32 iris_vpu_enc_dpb_size(struct iris_inst *inst)
+ {
+ 	struct v4l2_pix_format_mplane *fmt = &inst->fmt_src->fmt.pix_mp;
+-	u32 width = fmt->width;
+-	u32 height = fmt->height;
+-	bool is_ten_bit = false;
+-	u32 u_buffer_width, u_buffer_height, u_chroma_buffer_height;
+-	u32 ref_buf_size, metadata_stride, metadata_buf_height, meta_size_y, meta_size_c;
+-
+-	if (fmt->pixelformat == V4L2_PIX_FMT_P010)
+-		is_ten_bit = true;
+-
+-	if (!is_ten_bit) {
+-		u_buffer_width = ALIGN(width, 128);
+-		u_buffer_height = ALIGN(height, 32);
+-		u_chroma_buffer_height = ALIGN(height >> 1, 32);
+-		ref_buf_size = (u_buffer_height + u_chroma_buffer_height) * u_buffer_width;
+-
+-		metadata_stride = ALIGN((width + 31) / 32, 64);
+-		metadata_buf_height = ALIGN((height + 7) / 8, 16);
+-		meta_size_y = ALIGN(metadata_stride * metadata_buf_height, 4096);
+-		meta_size_c = ALIGN(metadata_stride * metadata_buf_height, 4096);
+-
+-		return ref_buf_size + meta_size_y + meta_size_c;
+-	} else {
+-		u32 ref_buf_height = ALIGN(height, 32);
+-		u32 ref_luma_stride = ALIGN(((width + 191) / 192) * 192, 128);
+-		u32 luma_size = ALIGN(ref_buf_height * ref_luma_stride, 4096);
+-		u32 chroma_size = ALIGN(ref_luma_stride * ALIGN((height + 1) >> 1, 32), 4096);
+-
+-		ref_buf_size = luma_size + chroma_size;
+-
+-		metadata_stride = ALIGN((width + 31) / 32, 64);
+-		metadata_buf_height = ALIGN((height + 7) / 8, 16);
+-		meta_size_y = ALIGN(metadata_stride * metadata_buf_height, 4096);
+-		meta_size_c = ALIGN(metadata_stride * metadata_buf_height, 4096);
+-
+-		return ref_buf_size + meta_size_y + meta_size_c;
+-	}
++
++	if (!fmt->width || !fmt->height || fmt->width > 8192 || fmt->height > 8192)
++		return 0;
++	return hfi_buffer_dpb_enc(fmt->width, fmt->height, iris_fmt_is_10bit(fmt->pixelformat));
+ }
+ 
+ struct iris_vpu_buf_type_handle {
+--- a/iris_platform_common.h
++++ b/iris_platform_common.h
+@@ -226,6 +226,7 @@
+ 	struct ubwc_config_data *ubwc_config;
+ 	u32 num_vpp_pipe;
+ 	bool no_opb;
++	bool prototype_restricted;
+ 	bool no_tz_fifo_reset;
+ 	u32 max_session_count;
+ 	/* max number of macroblocks per frame supported */
+--- a/iris_platform_gen2.c
++++ b/iris_platform_gen2.c
+@@ -1181,6 +1181,7 @@
+ 	.ubwc_config = &ubwc_config_sm8450,
+ 	.num_vpp_pipe = 4,
+ 	.no_opb = true,
++	.prototype_restricted = true,
+ 	.no_tz_fifo_reset = true,
+ 	.max_session_count = 16,
+ 	.max_core_mbpf = NUM_MBS_8K,

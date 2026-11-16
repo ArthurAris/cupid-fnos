@@ -1,0 +1,453 @@
+--- a/iris_hfi_queue.c
++++ b/iris_hfi_queue.c
+@@ -54,59 +54,46 @@
+ 	return 0;
+ }
+ 
+-static int iris_hfi_queue_read(struct iris_iface_q_info *qinfo, void *packet)
++static int iris_hfi_queue_read(struct iris_iface_q_info *qinfo, void *packet,
++			       u32 capacity, u32 *received)
+ {
+ 	struct iris_hfi_queue_header *queue = qinfo->qhdr;
+-	u32 write_idx = queue->write_idx * sizeof(u32);
+-	u32 read_idx = queue->read_idx * sizeof(u32);
+-	u32 packet_size, receive_request = 0;
+-	u32 new_read_idx, residue;
+-	u32 *read_ptr;
+-	int ret = 0;
+-
+-	if (queue->queue_type == IFACEQ_MSGQ_ID)
+-		receive_request = 1;
+-
++	u32 write_word = READ_ONCE(queue->write_idx);
++	u32 read_word = READ_ONCE(queue->read_idx);
++	u32 write_idx, read_idx, available, packet_size, first;
++
++	if (!received || !packet || capacity < sizeof(u32))
++		return -EINVAL;
++	*received = 0;
++	if (write_word >= IFACEQ_QUEUE_SIZE / sizeof(u32) ||
++	    read_word >= IFACEQ_QUEUE_SIZE / sizeof(u32))
++		return -EBADMSG;
++	write_idx = write_word * sizeof(u32);
++	read_idx = read_word * sizeof(u32);
++	queue->rx_req = queue->queue_type == IFACEQ_MSGQ_ID;
+ 	if (read_idx == write_idx) {
+-		queue->rx_req = receive_request;
+-		/* Ensure qhdr is updated in main memory */
+ 		mb();
+ 		return -ENODATA;
+ 	}
+-
+-	read_ptr = qinfo->kernel_vaddr + read_idx;
+-	if (read_ptr < (u32 *)qinfo->kernel_vaddr ||
+-	    read_ptr > (u32 *)(qinfo->kernel_vaddr +
+-	    IFACEQ_QUEUE_SIZE - sizeof(*read_ptr)))
+-		return -ENODATA;
+-
+-	packet_size = *read_ptr;
+-	if (!packet_size)
+-		return -EINVAL;
+-
+-	new_read_idx = read_idx + packet_size;
+-	if (packet_size <= IFACEQ_CORE_PKT_SIZE) {
+-		if (new_read_idx < IFACEQ_QUEUE_SIZE) {
+-			memcpy(packet, read_ptr, packet_size);
+-		} else {
+-			residue = new_read_idx - IFACEQ_QUEUE_SIZE;
+-			memcpy(packet, read_ptr, (packet_size - residue));
+-			memcpy((packet + (packet_size - residue)),
+-			       qinfo->kernel_vaddr, residue);
+-			new_read_idx = residue;
+-		}
+-	} else {
+-		new_read_idx = write_idx;
+-		ret = -EBADMSG;
+-	}
+-
+-	queue->rx_req = receive_request;
+-
+-	queue->read_idx = new_read_idx / sizeof(u32);
+-	/* Ensure qhdr is updated in main memory */
++	/* Firmware publishes the write index after writing the record. */
++	rmb();
++	available = write_idx >= read_idx ? write_idx - read_idx :
++		IFACEQ_QUEUE_SIZE - read_idx + write_idx;
++	if (available < sizeof(u32))
++		return -EBADMSG;
++	memcpy(&packet_size, (u8 *)qinfo->kernel_vaddr + read_idx, sizeof(packet_size));
++	if (packet_size < sizeof(u32) || packet_size % sizeof(u32) ||
++	    packet_size > capacity || packet_size > IFACEQ_CORE_PKT_SIZE ||
++	    packet_size > available)
++		return -EBADMSG;
++	first = min(packet_size, IFACEQ_QUEUE_SIZE - read_idx);
++	memcpy(packet, (u8 *)qinfo->kernel_vaddr + read_idx, first);
++	if (first != packet_size)
++		memcpy((u8 *)packet + first, qinfo->kernel_vaddr, packet_size - first);
++	queue->read_idx = ((read_idx + packet_size) % IFACEQ_QUEUE_SIZE) / sizeof(u32);
++	*received = packet_size;
+ 	mb();
+-
+-	return ret;
++	return 0;
+ }
+ 
+ int iris_hfi_queue_cmd_write_locked(struct iris_core *core, void *pkt, u32 pkt_size)
+@@ -152,48 +139,50 @@
+ 	return ret;
+ }
+ 
++int iris_hfi_queue_msg_read_len(struct iris_core *core, void *pkt, u32 capacity, u32 *received)
++{
++	int ret;
++
++	if (!received)
++		return -EINVAL;
++	*received = 0;
++	mutex_lock(&core->lock);
++	if (core->state != IRIS_CORE_INIT)
++		ret = -EINVAL;
++	else
++		ret = iris_hfi_queue_read(&core->message_queue, pkt, capacity, received);
++	mutex_unlock(&core->lock);
++	return ret;
++}
++
+ int iris_hfi_queue_msg_read(struct iris_core *core, void *pkt)
+ {
+-	struct iris_iface_q_info *q_info = &core->message_queue;
+-	int ret = 0;
+-
++	u32 received;
++
++	return iris_hfi_queue_msg_read_len(core, pkt, IFACEQ_CORE_PKT_SIZE, &received);
++}
++
++int iris_hfi_queue_dbg_read_len(struct iris_core *core, void *pkt, u32 capacity, u32 *received)
++{
++	int ret;
++
++	if (!received)
++		return -EINVAL;
++	*received = 0;
+ 	mutex_lock(&core->lock);
+-	if (core->state != IRIS_CORE_INIT) {
++	if (core->state != IRIS_CORE_INIT)
+ 		ret = -EINVAL;
+-		goto unlock;
+-	}
+-
+-	if (iris_hfi_queue_read(q_info, pkt)) {
+-		ret = -ENODATA;
+-		goto unlock;
+-	}
+-
+-unlock:
++	else
++		ret = iris_hfi_queue_read(&core->debug_queue, pkt, capacity, received);
+ 	mutex_unlock(&core->lock);
+-
+ 	return ret;
+ }
+ 
+ int iris_hfi_queue_dbg_read(struct iris_core *core, void *pkt)
+ {
+-	struct iris_iface_q_info *q_info = &core->debug_queue;
+-	int ret = 0;
+-
+-	mutex_lock(&core->lock);
+-	if (core->state != IRIS_CORE_INIT) {
+-		ret = -EINVAL;
+-		goto unlock;
+-	}
+-
+-	if (iris_hfi_queue_read(q_info, pkt)) {
+-		ret = -ENODATA;
+-		goto unlock;
+-	}
+-
+-unlock:
+-	mutex_unlock(&core->lock);
+-
+-	return ret;
++	u32 received;
++
++	return iris_hfi_queue_dbg_read_len(core, pkt, IFACEQ_CORE_PKT_SIZE, &received);
+ }
+ 
+ static void iris_hfi_queue_set_header(struct iris_core *core, u32 queue_id,
+--- a/iris_hfi_queue.h
++++ b/iris_hfi_queue.h
+@@ -177,6 +177,8 @@
+ int iris_hfi_queue_cmd_write_locked(struct iris_core *core, void *pkt, u32 pkt_size);
+ int iris_hfi_queue_cmd_write(struct iris_core *core, void *pkt, u32 pkt_size);
+ int iris_hfi_queue_msg_read(struct iris_core *core, void *pkt);
++int iris_hfi_queue_msg_read_len(struct iris_core *core, void *pkt, u32 capacity, u32 *received);
+ int iris_hfi_queue_dbg_read(struct iris_core *core, void *pkt);
++int iris_hfi_queue_dbg_read_len(struct iris_core *core, void *pkt, u32 capacity, u32 *received);
+ 
+ #endif
+--- a/iris_hfi_gen2_response.c
++++ b/iris_hfi_gen2_response.c
+@@ -147,45 +147,74 @@
+ 	return true;
+ }
+ 
+-static int iris_hfi_gen2_validate_packet(u8 *response_pkt, u8 *core_resp_pkt)
+-{
+-	u8 *response_limit = core_resp_pkt + IFACEQ_CORE_PKT_SIZE;
+-	u32 response_pkt_size = *(u32 *)response_pkt;
+-
+-	if (!response_pkt_size)
++static int iris_hfi_gen2_validate_packet(u8 *response_pkt, u8 *response_end)
++{
++	u32 size;
++
++	if (response_pkt > response_end ||
++	    response_end - response_pkt < (ptrdiff_t)sizeof(struct iris_hfi_packet))
+ 		return -EINVAL;
+-
+-	if (response_pkt_size < sizeof(struct iris_hfi_packet))
++	memcpy(&size, response_pkt, sizeof(size));
++	if (size < sizeof(struct iris_hfi_packet) || size % sizeof(u32) ||
++	    size > response_end - response_pkt)
+ 		return -EINVAL;
+-
+-	if (response_pkt + response_pkt_size > response_limit)
++	return 0;
++}
++
++static int iris_hfi_gen2_validate_hdr_packet(struct iris_core *core,
++					     struct iris_hfi_header *hdr, u32 received)
++{
++	struct iris_hfi_packet *packet;
++	u32 offset = sizeof(*hdr), i, needed;
++	u8 *start = (u8 *)hdr;
++
++	(void)core;
++	if (received < sizeof(*hdr) || received > IFACEQ_CORE_PKT_SIZE ||
++	    received % sizeof(u32) || hdr->size != received || !hdr->num_packets ||
++	    hdr->num_packets > (received - sizeof(*hdr)) / sizeof(*packet))
+ 		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static int iris_hfi_gen2_validate_hdr_packet(struct iris_core *core, struct iris_hfi_header *hdr)
+-{
+-	struct iris_hfi_packet *packet;
+-	int ret;
+-	u8 *pkt;
+-	u32 i;
+-
+-	if (hdr->size < sizeof(*hdr) + sizeof(*packet))
+-		return -EINVAL;
+-
+-	pkt = (u8 *)((u8 *)hdr + sizeof(*hdr));
+-
+ 	for (i = 0; i < hdr->num_packets; i++) {
+-		packet = (struct iris_hfi_packet *)pkt;
+-		ret = iris_hfi_gen2_validate_packet(pkt, core->response_packet);
+-		if (ret)
+-			return ret;
+-
+-		pkt += packet->size;
+-	}
+-
+-	return 0;
++		if (iris_hfi_gen2_validate_packet(start + offset, start + received))
++			return -EINVAL;
++		packet = (struct iris_hfi_packet *)(start + offset);
++		if (packet->payload_info > HFI_PAYLOAD_64_PACKED ||
++		    !iris_hfi_gen2_validate_packet_payload(packet))
++			return -EINVAL;
++		needed = 0;
++		switch (packet->type) {
++		case HFI_PROP_CROP_OFFSETS:
++			needed = 2 * sizeof(u32);
++			break;
++		case HFI_PROP_IMAGE_VERSION:
++			needed = IRIS_FW_VERSION_LENGTH - 1;
++			break;
++		case HFI_PROP_BITSTREAM_RESOLUTION:
++		case HFI_PROP_LUMA_CHROMA_BIT_DEPTH:
++		case HFI_PROP_CODED_FRAMES:
++		case HFI_PROP_BUFFER_FW_MIN_OUTPUT_COUNT:
++		case HFI_PROP_PIC_ORDER_CNT_TYPE:
++		case HFI_PROP_SIGNAL_COLOR_INFO:
++		case HFI_PROP_PROFILE:
++		case HFI_PROP_LEVEL:
++		case HFI_PROP_TIER:
++		case HFI_PROP_PICTURE_TYPE:
++			needed = sizeof(u32);
++			break;
++		case HFI_CMD_BUFFER:
++			if (packet->payload_info != HFI_PAYLOAD_NONE) {
++				if (packet->payload_info != HFI_PAYLOAD_STRUCTURE)
++					return -EINVAL;
++				needed = sizeof(struct iris_hfi_buffer);
++			}
++			break;
++		default:
++			break;
++		}
++		if (packet->size - sizeof(*packet) < needed)
++			return -EINVAL;
++		offset += packet->size;
++	}
++	return offset == received ? 0 : -EINVAL;
+ }
+ 
+ static int iris_hfi_gen2_handle_session_info(struct iris_inst *inst,
+@@ -263,6 +292,8 @@
+ 	dev_err(core->dev, "session error received %#x: %s\n", pkt->type, error);
+ 	iris_vb2_queue_error(inst);
+ 	iris_inst_change_state(inst, IRIS_INST_ERROR);
++	complete(&inst->completion);
++	complete(&inst->flush_completion);
+ 
+ 	return 0;
+ }
+@@ -276,10 +307,14 @@
+ 		dev_err(core->dev, "received system error of type %#x\n", pkt->type);
+ 
+ 	core->state = IRIS_CORE_ERROR;
++	complete(&core->core_init_done);
+ 
+ 	mutex_lock(&core->lock);
+-	list_for_each_entry(instance, &core->instances, list)
++	list_for_each_entry(instance, &core->instances, list) {
+ 		iris_inst_change_state(instance, IRIS_INST_ERROR);
++		complete(&instance->completion);
++		complete(&instance->flush_completion);
++	}
+ 	mutex_unlock(&core->lock);
+ 
+ 	schedule_delayed_work(&core->sys_error_handler, msecs_to_jiffies(10));
+@@ -290,24 +325,19 @@
+ static int iris_hfi_gen2_handle_system_init(struct iris_core *core,
+ 					    struct iris_hfi_packet *pkt)
+ {
+-	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS)) {
++	if (pkt->type != HFI_CMD_INIT || core->state != IRIS_CORE_INIT)
++		return -EINVAL;
++	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS))
+ 		core->state = IRIS_CORE_ERROR;
+-		return 0;
+-	}
+-
+ 	complete(&core->core_init_done);
+-
+ 	return 0;
+ }
+ 
+ static void iris_hfi_gen2_handle_session_close(struct iris_inst *inst,
+ 					       struct iris_hfi_packet *pkt)
+ {
+-	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS)) {
++	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS))
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+-		return;
+-	}
+-
+ 	complete(&inst->completion);
+ }
+ 
+@@ -449,6 +479,12 @@
+ 					     struct iris_hfi_packet *pkt)
+ {
+ 	int ret = 0;
++
++	if (!(pkt->flags & HFI_FW_FLAGS_SUCCESS)) {
++		iris_inst_change_state(inst, IRIS_INST_ERROR);
++		complete(&inst->completion);
++		return -EIO;
++	}
+ 
+ 	if (pkt->port == HFI_PORT_RAW)
+ 		ret = iris_inst_sub_state_change_pause(inst, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+@@ -918,12 +954,12 @@
+ 	return ret;
+ }
+ 
+-static int iris_hfi_gen2_handle_response(struct iris_core *core, void *response)
++static int iris_hfi_gen2_handle_response(struct iris_core *core, void *response, u32 received)
+ {
+ 	struct iris_hfi_header *hdr = (struct iris_hfi_header *)response;
+ 	int ret;
+ 
+-	ret = iris_hfi_gen2_validate_hdr_packet(core, hdr);
++	ret = iris_hfi_gen2_validate_hdr_packet(core, hdr, received);
+ 	if (ret)
+ 		return iris_hfi_gen2_handle_system_error(core, NULL);
+ 
+@@ -937,11 +973,12 @@
+ {
+ 	struct hfi_debug_header *pkt;
+ 	u8 *log;
+-
+-	while (!iris_hfi_queue_dbg_read(core, packet)) {
++	u32 received;
++
++	while (!iris_hfi_queue_dbg_read_len(core, packet, IFACEQ_CORE_PKT_SIZE, &received)) {
+ 		pkt = (struct hfi_debug_header *)packet;
+ 
+-		if (pkt->size < sizeof(*pkt))
++		if (received < sizeof(*pkt) || pkt->size != received)
+ 			continue;
+ 
+ 		if (pkt->size >= IFACEQ_CORE_PKT_SIZE)
+@@ -965,10 +1002,19 @@
+ 		return;
+ 	}
+ 
+-	memset(core->response_packet, 0, sizeof(struct iris_hfi_header));
+-	while (!iris_hfi_queue_msg_read(core, core->response_packet)) {
+-		iris_hfi_gen2_handle_response(core, core->response_packet);
+-		memset(core->response_packet, 0, sizeof(struct iris_hfi_header));
++	for (;;) {
++		u32 received;
++		int ret;
++
++		memset(core->response_packet, 0, IFACEQ_CORE_PKT_SIZE);
++		ret = iris_hfi_queue_msg_read_len(core, core->response_packet,
++					      IFACEQ_CORE_PKT_SIZE, &received);
++		if (ret) {
++			if (ret != -ENODATA)
++				iris_hfi_gen2_handle_system_error(core, NULL);
++			break;
++		}
++		iris_hfi_gen2_handle_response(core, core->response_packet, received);
+ 	}
+ 
+ 	iris_hfi_gen2_flush_debug_queue(core, core->response_packet);
+--- a/iris_core.c
++++ b/iris_core.c
+@@ -41,7 +41,7 @@
+ 		return -ETIMEDOUT;
+ 	}
+ 
+-	return 0;
++	return core->state == IRIS_CORE_ERROR ? -EIO : 0;
+ }
+ 
+ int iris_core_init(struct iris_core *core)
+@@ -57,6 +57,7 @@
+ 		goto error;
+ 	}
+ 
++	reinit_completion(&core->core_init_done);
+ 	core->state = IRIS_CORE_INIT;
+ 
+ 	ret = iris_hfi_queues_init(core);
+--- a/iris_utils.c
++++ b/iris_utils.c
+@@ -91,7 +91,7 @@
+ 		return -ETIMEDOUT;
+ 	}
+ 
+-	return 0;
++	return inst->state == IRIS_INST_ERROR || core->state == IRIS_CORE_ERROR ? -EIO : 0;
+ }
+ 
+ struct iris_inst *iris_get_instance(struct iris_core *core, u32 session_id)

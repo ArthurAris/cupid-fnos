@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "kernel": "6.18.18",
+  "vermagic": "6.18.18.c1147-trim SMP mod_unload modversions aarch64",
+  "official_headers": {
+    "Module.symvers": "121ac1b2269aa229ec044ff7bc3211ee3a7eea74829f89979603240299ab31a6",
+    "include/generated/utsrelease.h": "06c100040b23a1d647f893d2d454941a68d43a56be1553c1d017f9031eba286a",
+    "include/generated/autoconf.h": "ee5325dc7b38620525d4b4c04b71b1bf343ec475e8cd60e6cbbbb9ac44f86053"
+  },
+  "iris": {
+    "upstream_dir": "drivers/media/platform/qcom/iris",
+    "files": {
+      "Kconfig": "8e194306206d2c8bf6e99b142892e94a49401f4b9f05263fdef5b1dfe803b2b6",
+      "Makefile": "6d58e1052d2927157af57e84d95a81dc14f5d7e4f0a8fc6e66e215292529748a",
+      "iris_buffer.c": "99ca11a3638bb5ba65c1d407ff5c1034b45d6682468eca75125d91f1a909b52e",
+      "iris_buffer.h": "8a5e6c8fb1ae7327e29d30b04ba583b2ada42c85771c03093f8d8c8cb26e73b9",
+      "iris_common.c": "351acd7c549a3699aa5365259cc56ea64d600878dcbf784cd6616201fc9e838b",
+      "iris_common.h": "0db37b6644ddf652f9618f2402eccda47b05517c3f37ba588220edc43d727c27",
+      "iris_core.c": "0f92951fbe04a96b16d029777e6cb73c1b89b0a691bc4dc203fddf37e6d3c354",
+      "iris_core.h": "ba9ba6fa2cfa731ebfd14b4e471da0502e8af8606132c3e8ea1d83c6fda5225d",
+      "iris_ctrls.c": "a584e6e1f1d75945ee228058ed8e7dcff4af69e8b208678d01c866c4b0e23d8b",
+      "iris_ctrls.h": "c4100a9878baabb33b759389dfe64bc4ee76f1cd05c174b83e2f6e3f57e703fd",
+      "iris_firmware.c": "e25878ce1e79a9198bf0a24c37ce0a8e36c3ad9e8aba94fd72c64c7224c5d075",
+      "iris_firmware.h": "31779b314ec33390903dddf3c268dba749d3a6b964556edb5b7b4549a5d1f00f",
+      "iris_hfi_common.c": "524195ce8b14d659f14f6f0d9412fd4742c1de7bee8915eb040ca9b6b4f7cd88",
+      "iris_hfi_common.h": "cae71b7a9df3c88366cc6881c35ce43ff2b0b72a687028a1d2d50471fb6045e3",
+      "iris_hfi_gen1.h": "77983693519f3749dcaabccbf159066dc30a73c426c9758ec67323c2484ea86c",
+      "iris_hfi_gen1_command.c": "05376e91a2c20260202406418689a28d9f1a4cf87a46e57cf23749ac7882eb38",
+      "iris_hfi_gen1_defines.h": "15de9f09b511a52f03ae1d5bbfdf0700222af70077eabbe57969e1e0fbac83e5",
+      "iris_hfi_gen1_response.c": "a437b4edd8d76db3f8bd656592ab5a1b63c0fc59514be7118b87d98dd8697427",
+      "iris_hfi_gen2.h": "4f8b3ae092a44be5b19ca0a489899628e0366befa979b18e6884ef3cfccf64ad",
+      "iris_hfi_gen2_command.c": "3f04f7b89ad2e3eea90ad720fccff7905ff08895f2efff30dd860c32ef6bd22d",
+      "iris_hfi_gen2_defines.h": "b670a7da2be82d0e3324828d551a4e2cc156c121ea6afe52b4055f802f64bf84",
+      "iris_hfi_gen2_packet.c": "1d7ec44adff33a94932b3f8f471c5975bd1d435533ac9c806b8f3dcc21af705f",
+      "iris_hfi_gen2_packet.h": "94f7e501fe670911a8d6f73f4102dad5c6910aa540ea7ac2548dfe8402f3d4c0",
+      "iris_hfi_gen2_response.c": "e2148586aa8f921ad9fd4abd391ae3e1bf7c961c8ce410ce13da267f6b90c2ad",
+      "iris_hfi_queue.c": "0a80579fbbced446f69d6741bfb3fb3b12a4198f8eb9fffad6cbee96fb2b4614",
+      "iris_hfi_queue.h": "a4b2586de5f9f1fecc8f5217cd0ef3e57412d33067df05c88240870a2113694d",
+      "iris_instance.h": "eb6c8ab9379bc5c02811428b1d418cb835ced7680ce4934a922786a70cfb35b2",
+      "iris_platform_common.h": "6f157c3be69b94e13162a22c71100e0715f123300d6fdb8b62b06509bc9219e6",
+      "iris_platform_gen2.c": "8ba83ec3cb7dfbca64c2d550a60457b35eb9cc1db5232260a80891cc908e4071",
+      "iris_platform_qcs8300.h": "933d71df3659949b63e4f35227a29dc40c66bea8dc1ef67f1cbc9f14f25630f7",
+      "iris_platform_sm8250.c": "4be8643e29f3611c71ff058d22d285dbb763c88d7499328badb1c4ddd43ac958",
+      "iris_platform_sm8650.h": "a0b1eac96aa9bebe99deef54a4e8a2b2f6fea1ce7011778bebe8a179f58b92d9",
+      "iris_platform_sm8750.h": "a11b86a167706c276c50b06eee699989009851bcc92993b19dd4bcf249cdc93a",
+      "iris_power.c": "7143ea93a99cbf2dcbc1f7fb42aecc244c8a081fbac623c36ec7d3b9931e766c",
+      "iris_power.h": "ef223b142fd4260490a99d8aa035e0ac321cb3015ffad7dda78092821ac721c6",
+      "iris_probe.c": "3a88e1caa67678d85fcf0d7e26494e196e68585d151201905d9a2895380df57a",
+      "iris_resources.c": "9c25b31471637da46d8a3ec82a0035c9d3421dd5b90788a15db0e63f98acee4a",
+      "iris_resources.h": "8bf40bf4e14d23526d4a8021937b71da14627039378d4229dc2eb7b15d9c4317",
+      "iris_state.c": "02c1c435c1e5e60ba3ea8084c146426cd40fc5cd456cb4c26f3af9577ecfd564",
+      "iris_state.h": "b3d02c627ceee158882d1faaa410b4185a4a89521ffbfcd56f187e8740a341e6",
+      "iris_utils.c": "c9e9e0e9fd6937f899cc65b98ac4792033758d89826494b93af8fe7071cdda55",
+      "iris_utils.h": "1d454850734819ee312d0ef3f5cf8854d717d023934b7fb50699c2a74a7b25e8",
+      "iris_vb2.c": "cb59b3f27986855f42ced7a2baa563c71772075b8fb2ca16f5845644f8aae621",
+      "iris_vb2.h": "f50ca9a6feef8d44efe1bc315da1445ce82dee1d0daca9d808fb9c2daf2ddf54",
+      "iris_vdec.c": "431c0547d32b5985248fb019d1fc556b9973cbae355928c478a37b0292c637cc",
+      "iris_vdec.h": "cdf303a50e475188f151b8426a580ffdef3dbfce2ded06ebca54d24e4db8e430",
+      "iris_venc.c": "4003b25e94386193ccc6fd469dfbfd5a3ec168bfcc7a7702cdbf36992d0134bd",
+      "iris_venc.h": "bd7515d05ea1ee68c4abf1a25120520d1c6119662707e63749df464160bea833",
+      "iris_vidc.c": "dec117ff30a1b4f5653f567763b64c5586fe2959faf870eda895624e2e83ca4a",
+      "iris_vidc.h": "897ba968ecd07231f2d68b57acf10b29c00c72b5b73a766f9642f2d2632d6250",
+      "iris_vpu2.c": "8fa4a24dd6f3c71605399958eafe732481e02523bb9571b3037439029d4b8851",
+      "iris_vpu3x.c": "5af26cf987d8d4e003cf8921878d2113556582e2ba597be7680213b7024fff66",
+      "iris_vpu_buffer.c": "8acf1c2fca446e789e7ee1d9a1e3738512ebf0b7f2f26e36a83c9e07a3bf887e",
+      "iris_vpu_buffer.h": "ffffc402f5b937e2f29c1b56ced5082d91e61851a53828ede577e70f64606ddd",
+      "iris_vpu_common.c": "24e8b9ebfc1b1efb85c69b69080f5d3817fb087d41e0a56ac64852f296ec3a3b",
+      "iris_vpu_common.h": "7ba3e6550d929112db244fe1b5ce49ae3425198de08ae615b214b2f17b0dac7a",
+      "iris_vpu_register_defines.h": "0bdb029ef51fa1f5ad96e2b29c73fd81319fd3e74f7d29a65a5316e579090d48"
+    },
+    "patch": "iris-sm8450/0001-iris-sm8450-vpu2.patch",
+    "patch_sha256": "7499dd25e2ca336e5b109cc7518231001016b085df95c91c1b47ad106caf4876",
+    "followup_patches": [
+      {
+        "path": "iris-sm8450/0002-iris-sm8450-protocol-power.patch",
+        "sha256": "812e764aaa57c6cbceb6631b7b6a7d8174176e91e9833e5e2b1755a3528e6951"
+      },
+      {
+        "path": "iris-sm8450/0003-iris-sm8450-output-dpb.patch",
+        "sha256": "d2445e46cb57f662140a031924d47e2c9c1f13302ecf7e48bc14f97f56c6e40b"
+      },
+      {
+        "path": "iris-sm8450/0004-iris-sm8450-output-formats.patch",
+        "sha256": "53da89debabc6968a6a133d7f15343d2bffdbe56665739a5b626abf29a80c076"
+      },
+      {
+        "path": "iris-sm8450/0005-iris-hfi-length-errors.patch",
+        "sha256": "103b47536172169b579e8b2c294b2774d8c6bbb4f72b3659a044f074d4b6d975"
+      },
+      {
+        "path": "iris-sm8450/0006-iris-layout-restrictions.patch",
+        "sha256": "ff75c3ba24e6fad24944d0bb6d07970cf280a61e40106065c476aaa74e97aa40"
+      },
+      {
+        "path": "iris-sm8450/0007-iris-control-response-correlation.patch",
+        "sha256": "15839ccb7feda31435e4c0da95155fadc515f1bc130d87eb01553af2009a135a"
+      },
+      {
+        "path": "iris-sm8450/0008-iris-failure-rollback.patch",
+        "sha256": "a5ef42bceade20a61473822613a1b628dc789a22cc26cb5b796275c25d597d59"
+      }
+    ],
+    "module": "cupid_qcom_iris",
+    "alias": "qcom,sm8450-iris"
+  },
+  "fastrpc": {
+    "file": "drivers/misc/fastrpc.c",
+    "sha256": "752b97f725116002ee7d813e05ac590024436a54443677868105dca39c91b4bc",
+    "module": "cupid_fastrpc",
+    "alias": "qcom,fastrpc"
+  },
+  "videocc": {
+    "file": "drivers/clk/qcom/videocc-sm8450.c",
+    "sha256": "165e9ff678cbe281efb0a2b59d10cda7d15ecdadb6f95eab94da1d383da71d7e",
+    "module": "cupid_videocc_sm8450",
+    "alias": "qcom,sm8450-videocc",
+    "headers": {
+      "clk-alpha-pll.h": "a650f336e91466e15a8ac1809e574826081522cf12cc37e7970b84eb9fa02fdc",
+      "clk-branch.h": "d1cdd6eda43aaf475916c3e429ed70f83786b63a2cf1037d2639abf159b6519a",
+      "clk-rcg.h": "128e149a3f94d356a16e294e0ba406452e2a47af0443396cc2ff078da7731e1d",
+      "clk-regmap.h": "3c8dab9af916ecc46ed515533eb2535222a2ecd172cb9f0abfcbe16ca726735a",
+      "clk-regmap-divider.h": "a7dad4fcf36cd4dae19aa712636456a053a7c8c04f6bc70283bbb23e563341ff",
+      "common.h": "f704afff1e85ec09ae681f8402e179411e744d57045a0c9737a287cf667d0b1e",
+      "gdsc.h": "354adcd7878a7cdeae9fc892df19f3b8b11bcfea494893f126692a0b2d5a1df1",
+      "reset.h": "ee4ae7a90e5e3544ffa5335ad96511cee659bad16f09f1fa9fc28f1d10db06a3",
+      "clk-pll.h": "8eca6afa9577d99872c39dba393ce7a21874f8ff899e9476718dc1e0edb821cc"
+    }
+  }
+}

@@ -1,0 +1,325 @@
+--- a/iris_instance.h
++++ b/iris_instance.h
+@@ -19,6 +19,13 @@
+ 	IRIS_FMT_H264,
+ 	IRIS_FMT_HEVC,
+ 	IRIS_FMT_VP9,
++};
++
++enum iris_fmt_type_cap {
++	IRIS_FMT_NV12,
++	IRIS_FMT_QC08C,
++	IRIS_FMT_TP10,
++	IRIS_FMT_QC10C,
+ };
+ 
+ struct iris_fmt {
+--- a/iris_buffer.c
++++ b/iris_buffer.c
+@@ -19,6 +19,9 @@
+ #define Y_SCANLINE_ALIGN 32
+ #define UV_SCANLINE_ALIGN 16
+ #define UV_SCANLINE_ALIGN_QC08C 32
++#define Y_STRIDE_ALIGN_P010 256
++#define UV_STRIDE_ALIGN_P010 256
++#define Y_SCANLINE_ALIGN_QC10C 16
+ #define META_STRIDE_ALIGNED 64
+ #define META_SCANLINE_ALIGNED 16
+ #define NUM_MBS_4K (DIV_ROUND_UP(MAX_WIDTH, 16) * DIV_ROUND_UP(MAX_HEIGHT, 16))
+@@ -168,6 +171,62 @@
+  *
+  * Note: All the alignments are hardware requirements.
+  */
++static u32 iris_yuv_buffer_size_p010(struct iris_inst *inst)
++{
++	u32 y_plane, uv_plane, y_stride, uv_stride, y_scanlines, uv_scanlines;
++	struct v4l2_format *f;
++
++	if (inst->domain == DECODER)
++		f = inst->fmt_dst;
++	else
++		f = inst->fmt_src;
++
++	y_stride = ALIGN(f->fmt.pix_mp.width * 2, Y_STRIDE_ALIGN_P010);
++	uv_stride = ALIGN(f->fmt.pix_mp.width * 2, UV_STRIDE_ALIGN_P010);
++	y_scanlines = ALIGN(f->fmt.pix_mp.height, Y_SCANLINE_ALIGN);
++	uv_scanlines = ALIGN((f->fmt.pix_mp.height + 1) >> 1, UV_SCANLINE_ALIGN);
++	y_plane = y_stride * y_scanlines;
++	uv_plane = uv_stride * uv_scanlines;
++
++	return ALIGN(y_plane + uv_plane, PIXELS_4K);
++}
++
++static u32 iris_yuv_buffer_size_qc10c(struct iris_inst *inst)
++{
++	u32 y_plane, uv_plane, y_stride, uv_stride;
++	u32 uv_meta_stride, uv_meta_plane;
++	u32 y_meta_stride, y_meta_plane;
++	struct v4l2_format *f;
++
++	if (inst->domain == DECODER)
++		f = inst->fmt_dst;
++	else
++		f = inst->fmt_src;
++
++	y_meta_stride = ALIGN(DIV_ROUND_UP(f->fmt.pix_mp.width, 48),
++			      META_STRIDE_ALIGNED);
++	y_meta_plane = y_meta_stride * ALIGN(DIV_ROUND_UP(f->fmt.pix_mp.height, 4),
++					     META_SCANLINE_ALIGNED);
++	y_meta_plane = ALIGN(y_meta_plane, PIXELS_4K);
++
++	y_stride = ALIGN(f->fmt.pix_mp.width * 4 / 3, Y_STRIDE_ALIGN_P010);
++	y_plane = ALIGN(y_stride * ALIGN(f->fmt.pix_mp.height, Y_SCANLINE_ALIGN_QC10C),
++			PIXELS_4K);
++
++	uv_meta_stride = ALIGN(DIV_ROUND_UP((f->fmt.pix_mp.width + 1) >> 1, 24),
++			       META_STRIDE_ALIGNED);
++	uv_meta_plane = uv_meta_stride *
++			ALIGN(DIV_ROUND_UP((f->fmt.pix_mp.height + 1) >> 1, 4),
++			      META_SCANLINE_ALIGNED);
++	uv_meta_plane = ALIGN(uv_meta_plane, PIXELS_4K);
++
++	uv_stride = ALIGN(f->fmt.pix_mp.width * 4 / 3, UV_STRIDE_ALIGN_P010);
++	uv_plane = ALIGN(uv_stride * ALIGN((f->fmt.pix_mp.height + 1) >> 1, UV_SCANLINE_ALIGN),
++			 PIXELS_4K);
++
++	return ALIGN(y_meta_plane + y_plane + uv_meta_plane + uv_plane, PIXELS_4K);
++}
++
+ static u32 iris_yuv_buffer_size_qc08c(struct iris_inst *inst)
+ {
+ 	u32 y_plane, uv_plane, y_stride, uv_stride;
+@@ -261,8 +320,19 @@
+ 		case BUF_INPUT:
+ 			return iris_dec_bitstream_buffer_size(inst);
+ 		case BUF_OUTPUT:
+-			return iris_yuv_buffer_size_nv12(inst);
++			switch (inst->fmt_dst->fmt.pix_mp.pixelformat) {
++			case V4L2_PIX_FMT_QC08C:
++				return iris_yuv_buffer_size_qc08c(inst);
++			case V4L2_PIX_FMT_QC10C:
++				return iris_yuv_buffer_size_qc10c(inst);
++			case V4L2_PIX_FMT_P010:
++				return iris_yuv_buffer_size_p010(inst);
++			default:
++				return iris_yuv_buffer_size_nv12(inst);
++			}
+ 		case BUF_DPB:
++			if (iris_fmt_is_10bit(inst->fmt_dst->fmt.pix_mp.pixelformat))
++				return iris_yuv_buffer_size_qc10c(inst);
+ 			return iris_yuv_buffer_size_qc08c(inst);
+ 		default:
+ 			return 0;
+--- a/iris_utils.c
++++ b/iris_utils.c
+@@ -34,7 +34,28 @@
+ 
+ bool iris_split_mode_enabled(struct iris_inst *inst)
+ {
+-	return inst->fmt_dst->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_NV12;
++	u32 pixelformat = inst->fmt_dst->fmt.pix_mp.pixelformat;
++
++	if (inst->core->iris_platform_data->no_opb &&
++	    pixelformat == V4L2_PIX_FMT_QC08C)
++		return false;
++
++	return pixelformat == V4L2_PIX_FMT_NV12 ||
++		pixelformat == V4L2_PIX_FMT_QC08C ||
++		pixelformat == V4L2_PIX_FMT_P010 ||
++		pixelformat == V4L2_PIX_FMT_QC10C;
++}
++
++bool iris_fmt_is_8bit(u32 pixelformat)
++{
++	return pixelformat == V4L2_PIX_FMT_NV12 ||
++		pixelformat == V4L2_PIX_FMT_QC08C;
++}
++
++bool iris_fmt_is_10bit(u32 pixelformat)
++{
++	return pixelformat == V4L2_PIX_FMT_P010 ||
++		pixelformat == V4L2_PIX_FMT_QC10C;
+ }
+ 
+ void iris_helper_buffers_done(struct iris_inst *inst, unsigned int type,
+--- a/iris_utils.h
++++ b/iris_utils.h
+@@ -45,6 +45,8 @@
+ 			   u32 ref_width, u32 ref_height);
+ int iris_get_mbpf(struct iris_inst *inst);
+ bool iris_split_mode_enabled(struct iris_inst *inst);
++bool iris_fmt_is_8bit(u32 pixelformat);
++bool iris_fmt_is_10bit(u32 pixelformat);
+ struct iris_inst *iris_get_instance(struct iris_core *core, u32 session_id);
+ void iris_helper_buffers_done(struct iris_inst *inst, unsigned int type,
+ 			      enum vb2_buffer_state state);
+--- a/iris_vdec.c
++++ b/iris_vdec.c
+@@ -82,6 +82,28 @@
+ 	},
+ };
+ 
++static const u32 iris_vdec_formats_cap[] = {
++	[IRIS_FMT_NV12] = V4L2_PIX_FMT_NV12,
++	[IRIS_FMT_QC08C] = V4L2_PIX_FMT_QC08C,
++	[IRIS_FMT_TP10] = V4L2_PIX_FMT_P010,
++	[IRIS_FMT_QC10C] = V4L2_PIX_FMT_QC10C,
++};
++
++static bool check_format(struct iris_inst *inst, u32 pixfmt, u32 type)
++{
++	unsigned int i;
++
++	(void)inst;
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return false;
++
++	for (i = 0; i < ARRAY_SIZE(iris_vdec_formats_cap); i++)
++		if (iris_vdec_formats_cap[i] == pixfmt)
++			return true;
++
++	return false;
++}
++
+ static const struct iris_fmt *
+ find_format(struct iris_inst *inst, u32 pixfmt, u32 type)
+ {
+@@ -126,9 +148,10 @@
+ 		f->flags = V4L2_FMT_FLAG_COMPRESSED | V4L2_FMT_FLAG_DYN_RESOLUTION;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-		if (f->index)
++		if (f->index >= ARRAY_SIZE(iris_vdec_formats_cap))
+ 			return -EINVAL;
+-		f->pixelformat = V4L2_PIX_FMT_NV12;
++		f->pixelformat = iris_vdec_formats_cap[f->index];
++		f->flags = 0;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -157,7 +180,7 @@
+ 		}
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-		if (f->fmt.pix_mp.pixelformat != V4L2_PIX_FMT_NV12) {
++		if (!check_format(inst, f->fmt.pix_mp.pixelformat, f->type)) {
+ 			f_inst = inst->fmt_dst;
+ 			f->fmt.pix_mp.pixelformat = f_inst->fmt.pix_mp.pixelformat;
+ 			f->fmt.pix_mp.width = f_inst->fmt.pix_mp.width;
+@@ -246,15 +269,34 @@
+ 		inst->crop.height = f->fmt.pix_mp.height;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		if (!check_format(inst, f->fmt.pix_mp.pixelformat, f->type))
++			return -EINVAL;
++
+ 		fmt = inst->fmt_dst;
+ 		fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-		if (fmt->fmt.pix_mp.pixelformat != V4L2_PIX_FMT_NV12)
+-			return -EINVAL;
+ 		fmt->fmt.pix_mp.pixelformat = f->fmt.pix_mp.pixelformat;
+-		fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
+-		fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
+ 		fmt->fmt.pix_mp.num_planes = 1;
+-		fmt->fmt.pix_mp.plane_fmt[0].bytesperline = ALIGN(f->fmt.pix_mp.width, 128);
++		switch (f->fmt.pix_mp.pixelformat) {
++		case V4L2_PIX_FMT_P010:
++			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
++			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
++			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
++				ALIGN(f->fmt.pix_mp.width * 2, 256);
++			break;
++		case V4L2_PIX_FMT_QC10C:
++			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 192);
++			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 16);
++			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
++				ALIGN(f->fmt.pix_mp.width * 4 / 3, 256);
++			break;
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_QC08C:
++			fmt->fmt.pix_mp.width = ALIGN(f->fmt.pix_mp.width, 128);
++			fmt->fmt.pix_mp.height = ALIGN(f->fmt.pix_mp.height, 32);
++			fmt->fmt.pix_mp.plane_fmt[0].bytesperline =
++				ALIGN(f->fmt.pix_mp.width, 128);
++			break;
++		}
+ 		fmt->fmt.pix_mp.plane_fmt[0].sizeimage = iris_get_buffer_size(inst, BUF_OUTPUT);
+ 		inst->buffers[BUF_OUTPUT].min_count = iris_vpu_buf_count(inst, BUF_OUTPUT);
+ 		inst->buffers[BUF_OUTPUT].size = fmt->fmt.pix_mp.plane_fmt[0].sizeimage;
+@@ -274,15 +316,12 @@
+ 
+ int iris_vdec_validate_format(struct iris_inst *inst, u32 pixelformat)
+ {
+-	const struct iris_fmt *fmt = NULL;
+-
+-	if (pixelformat != V4L2_PIX_FMT_NV12) {
+-		fmt = find_format(inst, pixelformat, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+-		if (!fmt)
+-			return -EINVAL;
+-	}
+-
+-	return 0;
++	if (check_format(inst, pixelformat, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE))
++		return 0;
++	if (find_format(inst, pixelformat, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
++		return 0;
++
++	return -EINVAL;
+ }
+ 
+ int iris_vdec_subscribe_event(struct iris_inst *inst, const struct v4l2_event_subscription *sub)
+--- a/iris_hfi_gen2_command.c
++++ b/iris_hfi_gen2_command.c
+@@ -429,15 +429,35 @@
+ 
+ 	if (inst->domain == DECODER) {
+ 		pixelformat = inst->fmt_dst->fmt.pix_mp.pixelformat;
+-		hfi_colorformat = pixelformat == V4L2_PIX_FMT_NV12 ? HFI_COLOR_FMT_NV12 : 0;
++		switch (pixelformat) {
++		case V4L2_PIX_FMT_NV12:
++			hfi_colorformat = HFI_COLOR_FMT_NV12;
++			break;
++		case V4L2_PIX_FMT_QC08C:
++			hfi_colorformat = HFI_COLOR_FMT_NV12_UBWC;
++			break;
++		case V4L2_PIX_FMT_P010:
++			hfi_colorformat = HFI_COLOR_FMT_P010;
++			break;
++		case V4L2_PIX_FMT_QC10C:
++			hfi_colorformat = HFI_COLOR_FMT_TP10_UBWC;
++			break;
++		default:
++			return -EINVAL;
++		}
+ 	} else {
+ 		pixelformat = inst->fmt_src->fmt.pix_mp.pixelformat;
+-		hfi_colorformat = pixelformat == V4L2_PIX_FMT_NV12 ? HFI_COLOR_FMT_NV12 : 0;
+-	}
+-
+-	if (inst->core->iris_platform_data->no_opb &&
+-	    pixelformat != V4L2_PIX_FMT_NV12)
+-		return -EINVAL;
++		switch (pixelformat) {
++		case V4L2_PIX_FMT_NV12:
++			hfi_colorformat = HFI_COLOR_FMT_NV12;
++			break;
++		case V4L2_PIX_FMT_QC08C:
++			hfi_colorformat = HFI_COLOR_FMT_NV12_UBWC;
++			break;
++		default:
++			return -EINVAL;
++		}
++	}
+ 
+ 	return iris_hfi_gen2_session_set_property(inst,
+ 						  HFI_PROP_COLOR_FORMAT,
+@@ -467,7 +487,8 @@
+ 	stride_uv = stride_y;
+ 	scanline_uv = scanline_y / 2;
+ 
+-	if (pixelformat != V4L2_PIX_FMT_NV12)
++	if (pixelformat != V4L2_PIX_FMT_NV12 &&
++	    pixelformat != V4L2_PIX_FMT_P010)
+ 		return 0;
+ 
+ 	payload[0] = stride_y << 16 | scanline_y;

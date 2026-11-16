@@ -1,0 +1,126 @@
+{
+  "schema": "iris-public-role-source-manifest-1",
+  "role": "clients",
+  "paths_relative_to": "sources/iris",
+  "files": [
+    {
+      "path": "clients/decoder-evidence-hold.c",
+      "sha256": "026db7c7b29d0bceaa08568d138eaacd42d73cfb0b9e7f2f41d9dfeea3e0b72d",
+      "originalactualsourcehash": "026db7c7b29d0bceaa08568d138eaacd42d73cfb0b9e7f2f41d9dfeea3e0b72d",
+      "bytes": 21175,
+      "license": "GPL-2.0-only",
+      "transformations": [],
+      "scope": "original successful MAX32 three-frame HOLD"
+    },
+    {
+      "path": "clients/decoder-quiesce-hold.c",
+      "sha256": "7829d2047ee0012729843abade898f52b445862c56deafaf706a507ee80aa5e1",
+      "originalactualsourcehash": "7829d2047ee0012729843abade898f52b445862c56deafaf706a507ee80aa5e1",
+      "bytes": 25369,
+      "license": "GPL-2.0-only",
+      "transformations": [],
+      "scope": "latest 180B quiesce subset collector"
+    },
+    {
+      "path": "clients/decoder-stop-evidence-hold.c",
+      "sha256": "16df16cf41911bb368833814f5c6b78f9f7b8c343161fb9532bf60b01065a10b",
+      "originalactualsourcehash": "16df16cf41911bb368833814f5c6b78f9f7b8c343161fb9532bf60b01065a10b",
+      "bytes": 23459,
+      "license": "GPL-2.0-only",
+      "transformations": [],
+      "scope": "bounded STOP failure HOLD"
+    },
+    {
+      "path": "clients/decoder-repeat.c",
+      "sha256": "38b9d5490895ca5164468da855be3a1870a5d304454d01f65faffe5386ee8472",
+      "originalactualsourcehash": "d09a26c74097cb93628a03f05bfdd04c20003b20a7925bee0312f30ff3cb19f2",
+      "bytes": 30809,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "release_sha_helper_header_include"
+        }
+      ],
+      "scope": "future ABI unresolved; ENOTSUP; no native acceptance"
+    },
+    {
+      "path": "clients/verify_fde.py",
+      "sha256": "2fdef228181b9b7bc7f8c1182002662dfdd41a69ba802c5d551d2a8a1f309e5e",
+      "originalactualsourcehash": "771ce51549d075632273d86de62b195581fac7ca293a2d801d3f50dbc7c3566c",
+      "bytes": 9155,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ],
+      "scope": "immutable original offline verifier"
+    },
+    {
+      "path": "clients/parse-quiesce-observation.py",
+      "sha256": "caad91b7f754cdb2242954b459f8f88423795f3df5ba907a7a8739d87d2d29e7",
+      "originalactualsourcehash": "2f1dec2dbc5e30ebbff424219c8309bb28048d5edf690f68da18114fb5829802",
+      "bytes": 16009,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "release_relative_verifier_path",
+          "verifier_bytes_unchanged": false
+        },
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "pin_SPDX_only_verifier_derivative",
+          "original_verifier_sha256": "771ce51549d075632273d86de62b195581fac7ca293a2d801d3f50dbc7c3566c",
+          "published_verifier_sha256": "2fdef228181b9b7bc7f8c1182002662dfdd41a69ba802c5d551d2a8a1f309e5e"
+        }
+      ],
+      "scope": "offline subset parser; no CLOSE ACK proof"
+    },
+    {
+      "path": "clients/future-abi.h",
+      "sha256": "98be77a4b57e09ee7da8d5c50292bcc264304fb9d6eec98f6bf11ce649709db4",
+      "originalactualsourcehash": "2bf02e49f6848a332e953ca4a6e29820bb0b44afab91dd76e97b305ead126a7e",
+      "bytes": 268,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "omit_external_fixture_pins",
+          "fail_closed": true
+        },
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "clients/supervisor-sha256.h",
+      "sha256": "f951299b84897094441616b927782cdbfad6022d0faa76386ea835a33b39ec59",
+      "originalactualsourcehash": "a195984396dc43c6c1fa03072f687987c17ac2d26b70a7fc088d658279a88e26",
+      "bytes": 2918,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "C_source_helper_header_rename"
+        }
+      ],
+      "scope": "exact helper paired with original repeat prototype; no borrowed PID1 variant"
+    }
+  ],
+  "production_admitted": false,
+  "full_reproducibility_claimed": false,
+  "omitted_dependencies": [
+    "caller-provided FIR1/FNV1/trace/capture and expected bindings",
+    "future-ABI external fixture pins remain empty/unresolved"
+  ],
+  "license_gap": null,
+  "license_basis": "User approved original project code GPL-2.0-only; existing notices take priority."
+}

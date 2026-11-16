@@ -1,0 +1,13 @@
+[Unit]
+Description=cupid native GPU utilization and temperature monitoring
+After=systemd-modules-load.service
+Before=resmon_service.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /usr/local/lib/cupid/cupid-gpu-monitor-start.py
+RemainAfterExit=yes
+TimeoutStartSec=45
+
+[Install]
+WantedBy=multi-user.target

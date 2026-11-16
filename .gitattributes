@@ -1,0 +1,2 @@
+# Source bytes remain pinned exactly; do not normalize source snapshots.
+* -text

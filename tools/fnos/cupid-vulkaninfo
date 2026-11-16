@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Use the Debian Vulkan loader and Mesa Turnip, not the bundled FTG340 loader.
+set -eu
+loader=/usr/local/lib/cupid-gpu
+icd=/usr/share/vulkan/icd.d/freedreno_icd.json
+[ -r "$loader/libvulkan.so" ] && [ -r "$icd" ] || {
+    printf 'cupid-vulkaninfo: verified system loader or Freedreno ICD is missing.\n' >&2
+    exit 1
+}
+exec env -u DISPLAY -u WAYLAND_DISPLAY \
+    LD_LIBRARY_PATH="$loader:/usr/lib/aarch64-linux-gnu" \
+    VK_ICD_FILENAMES="$icd" VK_DRIVER_FILES="$icd" \
+    MESA_SHADER_CACHE_DISABLE=true /usr/bin/vulkaninfo "$@"

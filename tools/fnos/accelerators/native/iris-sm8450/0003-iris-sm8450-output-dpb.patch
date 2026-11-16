@@ -1,0 +1,81 @@
+--- a/iris_vpu_buffer.c
++++ b/iris_vpu_buffer.c
+@@ -1426,6 +1426,47 @@
+ 	return output_min_count;
+ }
+ 
++static u32 iris_vpu_enc_dpb_size(struct iris_inst *inst)
++{
++	struct v4l2_pix_format_mplane *fmt = &inst->fmt_src->fmt.pix_mp;
++	u32 width = fmt->width;
++	u32 height = fmt->height;
++	bool is_ten_bit = false;
++	u32 u_buffer_width, u_buffer_height, u_chroma_buffer_height;
++	u32 ref_buf_size, metadata_stride, metadata_buf_height, meta_size_y, meta_size_c;
++
++	if (fmt->pixelformat == V4L2_PIX_FMT_P010)
++		is_ten_bit = true;
++
++	if (!is_ten_bit) {
++		u_buffer_width = ALIGN(width, 128);
++		u_buffer_height = ALIGN(height, 32);
++		u_chroma_buffer_height = ALIGN(height >> 1, 32);
++		ref_buf_size = (u_buffer_height + u_chroma_buffer_height) * u_buffer_width;
++
++		metadata_stride = ALIGN((width + 31) / 32, 64);
++		metadata_buf_height = ALIGN((height + 7) / 8, 16);
++		meta_size_y = ALIGN(metadata_stride * metadata_buf_height, 4096);
++		meta_size_c = ALIGN(metadata_stride * metadata_buf_height, 4096);
++
++		return ref_buf_size + meta_size_y + meta_size_c;
++	} else {
++		u32 ref_buf_height = ALIGN(height, 32);
++		u32 ref_luma_stride = ALIGN(((width + 191) / 192) * 192, 128);
++		u32 luma_size = ALIGN(ref_buf_height * ref_luma_stride, 4096);
++		u32 chroma_size = ALIGN(ref_luma_stride * ALIGN((height + 1) >> 1, 32), 4096);
++
++		ref_buf_size = luma_size + chroma_size;
++
++		metadata_stride = ALIGN((width + 31) / 32, 64);
++		metadata_buf_height = ALIGN((height + 7) / 8, 16);
++		meta_size_y = ALIGN(metadata_stride * metadata_buf_height, 4096);
++		meta_size_c = ALIGN(metadata_stride * metadata_buf_height, 4096);
++
++		return ref_buf_size + meta_size_y + meta_size_c;
++	}
++}
++
+ struct iris_vpu_buf_type_handle {
+ 	enum iris_buffer_type type;
+ 	u32 (*handle)(struct iris_inst *inst);
+@@ -1455,6 +1496,7 @@
+ 		{BUF_VPSS,        iris_vpu_enc_vpss_size            },
+ 		{BUF_SCRATCH_1,   iris_vpu_enc_scratch1_size        },
+ 		{BUF_SCRATCH_2,   iris_vpu_enc_scratch2_size        },
++		{BUF_DPB,         iris_vpu_enc_dpb_size         },
+ 	};
+ 
+ 	if (inst->domain == DECODER) {
+@@ -1518,6 +1560,9 @@
+ 
+ static inline int iris_vpu_dpb_count(struct iris_inst *inst)
+ {
++	if (inst->domain == ENCODER)
++		return inst->core->iris_platform_data->no_opb ? 2 : 0;
++
+ 	if (iris_split_mode_enabled(inst)) {
+ 		return inst->fw_min_count ?
+ 			inst->fw_min_count : inst->buffers[BUF_OUTPUT].min_count;
+--- a/iris_hfi_gen2_command.c
++++ b/iris_hfi_gen2_command.c
+@@ -434,6 +434,10 @@
+ 		pixelformat = inst->fmt_src->fmt.pix_mp.pixelformat;
+ 		hfi_colorformat = pixelformat == V4L2_PIX_FMT_NV12 ? HFI_COLOR_FMT_NV12 : 0;
+ 	}
++
++	if (inst->core->iris_platform_data->no_opb &&
++	    pixelformat != V4L2_PIX_FMT_NV12)
++		return -EINVAL;
+ 
+ 	return iris_hfi_gen2_session_set_property(inst,
+ 						  HFI_PROP_COLOR_FORMAT,

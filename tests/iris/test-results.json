@@ -1,0 +1,324 @@
+{
+  "schema": "iris-release-host-test-results-1",
+  "tests": [
+    {
+      "schema": "iris-published-host-logic-1",
+      "case": "response",
+      "generated_c_sha256": "cc3805838be8878f6624c62db40cdd12efb7db12e3edd48552d3316efd043076",
+      "functions": [
+        {
+          "source": "iris_buffer.c",
+          "function": "iris_repeat_owner_submit",
+          "source_sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+          "extracted_sha256": "acceb8e8c707f11b50856f459cb29ae2a59ff316e66e903e44490141f5103517"
+        },
+        {
+          "source": "iris_buffer.c",
+          "function": "iris_repeat_owner_return",
+          "source_sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+          "extracted_sha256": "f55e3af7b495b909e17c52d4c981798cc4d3045cf5a51750628ac51a9732ed47"
+        },
+        {
+          "source": "iris_buffer.c",
+          "function": "iris_repeat_apps_owned",
+          "source_sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+          "extracted_sha256": "9bcc4ca54023447b021e55e7a97278e2f24e429d5eab72d2ad552c980a2a2afa"
+        },
+        {
+          "source": "iris_buffer.c",
+          "function": "iris_repeat_internal_owned",
+          "source_sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+          "extracted_sha256": "77ad08c4038e11cbf4b5125959d9c6b90c7846e0acb865acce8c203893988097"
+        },
+        {
+          "source": "iris_buffer.c",
+          "function": "iris_mark_internal_buffer_returned",
+          "source_sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+          "extracted_sha256": "3447d2a9561e1a20f4131addb0c956691f0c2b86937f796c3edf6d493781cf29"
+        },
+        {
+          "source": "iris_hfi_gen2_command.c",
+          "function": "iris_hfi_gen2_get_port_from_buf_type",
+          "source_sha256": "f6024bfd74232d36a955a0cd132f29a28c51215f68c0511105fdffe1e9a6cb62",
+          "extracted_sha256": "ea465f94a04c3148526669c4e7db87e0366a180aa71d65c9039133e606c8fb6c"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_buf_type_to_driver",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "667e3361957d19906c5afb365be88d9d8b70809724c5e68b9d0c7edb3c709d9b"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_is_valid_hfi_buffer_type",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "0f9a83263f8ee6cf90c08d35fc6df7e2277cb1eb2fe112ffb2f5bf19da99c155"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_is_valid_hfi_port",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "b9030356978503846de2678a9177680724ee50fd8bd25669e82eebbecd65a0bb"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_get_driver_buffer_flags",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "c00dc2dd4c850e73fa7612f9c55b2e9a177b47d2d0b9d9d193b493a41f84e052"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_validate_packet_payload",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "ab50a4667f550190c446c96f889de786332035e64bf2c389ad4c35799288407a"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_validate_packet",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "28d417fd80b5f9c7f5e8aeaefb5205cebd94f0d15786b5b1fa483c05e0f6a833"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_validate_hdr_packet",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "625ede6006f7981acdf3c0ed69cb2385f2f1adefe254326551b6dd1dc0a14cfb"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_validate_buffer",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "232f8d4f99878252c8bd7ddaa1b42c13be29562c0d27ff3964f709c74b1ef584"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_session_close",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "354b556fae7fd6b5fbb480bbb1dc6000131a724058b0ad1a934306bbdd542364"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_input_buffer",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "ad4ec229970d3181d272b239f2d2a2bbae9fd72bec446cc504f22fe1badca1a9"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_output_buffer",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "febf74fbdc6b2fc710e503a6b74a0bc22832fe8ea0974848890335e65b472eb0"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_dequeue_buffers",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "f4a25be7480652458ceac21b77202f37ab61bb6cff47bad4b5bf12480f306ebf"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_repeat_internal_return",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "fbff78d0170a465579687c9a997c92d3e8915c701f7b86dc07788220c4d23f07"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_repeat_app_return",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "f1d3b7714629cb9b38917d28e202b8ceda7bda601ef48a55a1fe34e4677f3c52"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_release_internal_buffer",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "738e7753888e4eb05de72036fb9a4547cc8822379542e85e8b7aa1343f984ed3"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_session_stop",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "af28e6104efdf709225b86f4ec5b87aeb9a881b48ae892882f3560453502c1dd"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_session_buffer",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "61b84331f4574b4c57a70bb597b462bf46b9629553667dc73938ff89739e8dad"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_session_command",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "214f5f37f213216e0a4e8cd3be6976a7a38331e54dbf113b6e2a18a7733c1e13"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_session_failure",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "cff684ec09f5431bf375a8030c2f1bd9bd77727030f29d6d7c20be8e137682dd"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_decode_once_source_change_admit",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "c7155a0bc7d2a1e1e29ee6ed81c074518fa28f557eb7f06df23955826b783824"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_session_response",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "5798493b8f2e0e5b5c63c720c4d08cc07f2bff85385b2ef89f9d599824877103"
+        },
+        {
+          "source": "iris_hfi_gen2_response.c",
+          "function": "iris_hfi_gen2_handle_response",
+          "source_sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+          "extracted_sha256": "a153ff0b3db7ba405bd7801786712485e257d1ea88ba71d52c7101a0aa38b70d"
+        }
+      ],
+      "results": [
+        {
+          "mode": "native",
+          "passed": true,
+          "summary": "actual complete response/strict internal/owner chain: STOP4/DPB/PERSIST/PSC/APP latest LAST and malformed/attrs/readonly/stale/oldgeneration passed; no old observer/free fallback"
+        },
+        {
+          "mode": "asan-ubsan",
+          "passed": true,
+          "summary": "actual complete response/strict internal/owner chain: STOP4/DPB/PERSIST/PSC/APP latest LAST and malformed/attrs/readonly/stale/oldgeneration passed; no old observer/free fallback"
+        }
+      ],
+      "host_facades_only": true,
+      "physical_dma_proof": false,
+      "device_verified": false,
+      "full_kernel_built": false,
+      "published_gates_modified": false
+    },
+    {
+      "schema": "iris-published-host-logic-1",
+      "case": "wrapper",
+      "generated_c_sha256": "ea398e03f1b5dd9c23a553470a9a8efae636205187a1ce2bd44aff0aaa95eac8",
+      "functions": [
+        {
+          "source": "iris_vidc.c",
+          "function": "iris_decode_once_reqbufs",
+          "source_sha256": "54c50c6d5d6ed35a707d3897cd831e322255bbe1315aea773169a3cd68494760",
+          "extracted_sha256": "f614b72fc89827628aa806b427215a20d11c44308e951ecb8a1686cb3e4857ef"
+        },
+        {
+          "source": "iris_vidc.c",
+          "function": "iris_experiment_ioctl",
+          "source_sha256": "54c50c6d5d6ed35a707d3897cd831e322255bbe1315aea773169a3cd68494760",
+          "extracted_sha256": "60a2ce928bbf0e2cdb620c8b0d5261b94d93bdecaca9da93b6daf9dae3591358"
+        },
+        {
+          "source": "iris_vidc.c",
+          "function": "iris_repeat_close",
+          "source_sha256": "54c50c6d5d6ed35a707d3897cd831e322255bbe1315aea773169a3cd68494760",
+          "extracted_sha256": "59d8776fb2db59b2d5434b7c08b9fbb5dbda6a66e39d5350273f7b6dcd282d8f"
+        },
+        {
+          "source": "iris_vidc.c",
+          "function": "iris_close",
+          "source_sha256": "54c50c6d5d6ed35a707d3897cd831e322255bbe1315aea773169a3cd68494760",
+          "extracted_sha256": "0b420fdb0cc860064dca73c1b08a600ce0d2182d4e75e6c464c38cbac36cc05f"
+        }
+      ],
+      "results": [
+        {
+          "mode": "native",
+          "passed": true,
+          "summary": "actual public ioctl/REQ0/close chain: reclaim0 denies both queue cancel commands before framework; control/receipt allowed; release/kill retains no free"
+        },
+        {
+          "mode": "asan-ubsan",
+          "passed": true,
+          "summary": "actual public ioctl/REQ0/close chain: reclaim0 denies both queue cancel commands before framework; control/receipt allowed; release/kill retains no free"
+        }
+      ],
+      "host_facades_only": true,
+      "physical_dma_proof": false,
+      "device_verified": false,
+      "full_kernel_built": false,
+      "published_gates_modified": false
+    },
+    {
+      "schema": "iris-published-host-logic-1",
+      "case": "power",
+      "generated_c_sha256": "f759a5b63d53feb4b634e901a638b11098ec977dc6c42944ec0939c5b2b22b0e",
+      "functions": [
+        {
+          "source": "iris_vpu_common.c",
+          "function": "iris_vpu_has_checked_power",
+          "source_sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+          "extracted_sha256": "ab83d44b183d5af8f9a61df3d82a426114e67035daaddcfe552d467131f990ca"
+        },
+        {
+          "source": "iris_vpu_common.c",
+          "function": "iris_repeat_power_held",
+          "source_sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+          "extracted_sha256": "6043c54167337fcf233252cae69a966ae3ba0496f945293c75ce9036f2a728fb"
+        },
+        {
+          "source": "iris_vpu_common.c",
+          "function": "iris_vpu2_power_on_checked",
+          "source_sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+          "extracted_sha256": "4fb35854c755dc3f081981f1a1b334e72543b61a71f739731bc88259aae9794f"
+        },
+        {
+          "source": "iris_vpu_common.c",
+          "function": "iris_vpu_power_on_checked",
+          "source_sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+          "extracted_sha256": "f796aca68cf3687e6e2439a036983a14c8ceb2b48b51b63cbf1791e3e83f2227"
+        },
+        {
+          "source": "iris_vpu_common.c",
+          "function": "iris_vpu_power_on",
+          "source_sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+          "extracted_sha256": "7289555c3058d591e80305d0a0b7ad2ecc9c84ec02a660f4c7d660e67ed2f4e5"
+        },
+        {
+          "source": "iris_core.c",
+          "function": "iris_core_init_only",
+          "source_sha256": "54291d1ca5357ceee2e9acf6f4a88bab869338b211ca3550834c98520a18a8e2",
+          "extracted_sha256": "d7aa6b3ca1373ecb2f95a1ba9a88e98bc82839aa32e931b5d43e59610a682dd7"
+        },
+        {
+          "source": "iris_core.c",
+          "function": "iris_core_init_only",
+          "source_sha256": "54291d1ca5357ceee2e9acf6f4a88bab869338b211ca3550834c98520a18a8e2",
+          "extracted_sha256": "d7aa6b3ca1373ecb2f95a1ba9a88e98bc82839aa32e931b5d43e59610a682dd7"
+        }
+      ],
+      "results": [
+        {
+          "mode": "native",
+          "passed": true,
+          "summary": "exact cold core->checked full provider path: old red mutex re-entry caught; new cold empty green PM/OPP/ICC/domains/swmode/preset/SYSINIT; retained ordinary session no hardware reinit; failures retained"
+        },
+        {
+          "mode": "asan-ubsan",
+          "passed": true,
+          "summary": "exact cold core->checked full provider path: old red mutex re-entry caught; new cold empty green PM/OPP/ICC/domains/swmode/preset/SYSINIT; retained ordinary session no hardware reinit; failures retained"
+        }
+      ],
+      "host_facades_only": true,
+      "physical_dma_proof": false,
+      "device_verified": false,
+      "full_kernel_built": false,
+      "published_gates_modified": false
+    }
+  ],
+  "passed_runs": 6,
+  "parser_relative_verifier_pin_loaded": true,
+  "parser_invalid_envelope_rejected": true,
+  "parser_full_fixture_tested": false,
+  "compiler": "Ubuntu GCC 15.2.0-16ubuntu1",
+  "python_isolation": "-I -B",
+  "hardware_proof": false,
+  "test_script_sha256": {
+    "cold_power_test.py": "279ba5c23620dd208ccba54661c31c071bf11b34a1fc934471242e603e7e1a5e",
+    "response_test.py": "97502e54f95af7ed836d083eeecda382b1b4204ec766267d57ead748be9aa838",
+    "support.py": "ea14989b38112ea2fe83de6893b392e2f5a587c55618dc54b5bbcd4821e3e842",
+    "wrapper_test.py": "9bda44c34aad5f6c51412a2d3777ddd03d9fbaf1822d71f74d4dda9f655a0225"
+  }
+}

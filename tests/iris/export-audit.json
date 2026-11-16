@@ -1,0 +1,911 @@
+{
+  "schema": "iris-public-export-audit-1",
+  "files": [
+    {
+      "path": "sources/iris/clients/decoder-evidence-hold.c",
+      "sha256": "026db7c7b29d0bceaa08568d138eaacd42d73cfb0b9e7f2f41d9dfeea3e0b72d",
+      "bytes": 21175
+    },
+    {
+      "path": "sources/iris/clients/decoder-quiesce-hold.c",
+      "sha256": "7829d2047ee0012729843abade898f52b445862c56deafaf706a507ee80aa5e1",
+      "bytes": 25369
+    },
+    {
+      "path": "sources/iris/clients/decoder-repeat.c",
+      "sha256": "38b9d5490895ca5164468da855be3a1870a5d304454d01f65faffe5386ee8472",
+      "bytes": 30809
+    },
+    {
+      "path": "sources/iris/clients/decoder-stop-evidence-hold.c",
+      "sha256": "16df16cf41911bb368833814f5c6b78f9f7b8c343161fb9532bf60b01065a10b",
+      "bytes": 23459
+    },
+    {
+      "path": "sources/iris/clients/future-abi.h",
+      "sha256": "98be77a4b57e09ee7da8d5c50292bcc264304fb9d6eec98f6bf11ce649709db4",
+      "bytes": 268
+    },
+    {
+      "path": "sources/iris/clients/parse-quiesce-observation.py",
+      "sha256": "caad91b7f754cdb2242954b459f8f88423795f3df5ba907a7a8739d87d2d29e7",
+      "bytes": 16009
+    },
+    {
+      "path": "sources/iris/clients/source-manifest.json",
+      "sha256": "8916c53101a7247702acabfa69252551630e8c596d235a7c97254b1d19e73a16",
+      "bytes": 4794
+    },
+    {
+      "path": "sources/iris/clients/supervisor-sha256.h",
+      "sha256": "f951299b84897094441616b927782cdbfad6022d0faa76386ea835a33b39ec59",
+      "bytes": 2918
+    },
+    {
+      "path": "sources/iris/clients/verify_fde.py",
+      "sha256": "2fdef228181b9b7bc7f8c1182002662dfdd41a69ba802c5d551d2a8a1f309e5e",
+      "bytes": 9155
+    },
+    {
+      "path": "sources/iris/pid1/coordinator.c",
+      "sha256": "bd0895607d0ad93fde1d3e2873537fb2268ef247432316efb1941e7789d00e00",
+      "bytes": 13709
+    },
+    {
+      "path": "sources/iris/pid1/coordinator.h",
+      "sha256": "1079f14c632b1fae3193d92ce8e7f75f026f11e7131874fd43426439a51518dc",
+      "bytes": 4751
+    },
+    {
+      "path": "sources/iris/pid1/decode-owner.c",
+      "sha256": "3acbef5ef29cc931d1427dfb2eba980d1d4744be921a0d8ecb9fded0d8242b00",
+      "bytes": 11445
+    },
+    {
+      "path": "sources/iris/pid1/decode-owner.h",
+      "sha256": "a5a12cef5c6c8b9b2a7e58c5d8c39afe39ec72a0ed44a207eb7c77d37df8134c",
+      "bytes": 3112
+    },
+    {
+      "path": "sources/iris/pid1/decode-pipeline.c",
+      "sha256": "30da927073ea96607e853f0348c7756fd55bd4a43c3c6369625c1ee7494833d8",
+      "bytes": 4272
+    },
+    {
+      "path": "sources/iris/pid1/decode-pipeline.h",
+      "sha256": "2b99e9e712070390b4e2e2ee0781e2c0fc68870e11d33641f1de613e9f20d8be",
+      "bytes": 1190
+    },
+    {
+      "path": "sources/iris/pid1/decode-ready.c",
+      "sha256": "9f51cbdb543875f74a7fb0ea1b437a7227b7f1281f8618957d4d15ac8a8c87e3",
+      "bytes": 2967
+    },
+    {
+      "path": "sources/iris/pid1/decode-work.c",
+      "sha256": "3725caeb0420c42c9a132162dce53aef8c3cee973841f8ee9868b59f6fe6447a",
+      "bytes": 14494
+    },
+    {
+      "path": "sources/iris/pid1/decode-work.h",
+      "sha256": "43fa4b5f5d62b80efc83b4bcdb3119e8b3b547ade3f69c7d3c75ec81388674f4",
+      "bytes": 3341
+    },
+    {
+      "path": "sources/iris/pid1/fd-handoff.c",
+      "sha256": "584c1b207fb807373d7b9a4aaaeff7e60920ef90ca8321a5ee269ca9113926a0",
+      "bytes": 8989
+    },
+    {
+      "path": "sources/iris/pid1/fd-handoff.h",
+      "sha256": "dd9491ea1686aa4b07aa7f4f90090858b5b9a20acf1f26702b5bff2e19f40681",
+      "bytes": 1579
+    },
+    {
+      "path": "sources/iris/pid1/fixed-decode-diagnostic.c",
+      "sha256": "073a0abcb813acc230fb50da404330def8b78dc7900d190d6a2fce2dfbc5d4cd",
+      "bytes": 10218
+    },
+    {
+      "path": "sources/iris/pid1/fixed-decode-diagnostic.h",
+      "sha256": "73fc0a6c306cce99d8843d39f3861fbe25312f52e0d0eb65d8b7333dc1ac831b",
+      "bytes": 1101
+    },
+    {
+      "path": "sources/iris/pid1/fixed-decode-evidence.c",
+      "sha256": "216f7d1983471b0cb4ff6e5999293094cce078a5d907e0bc47beeea2f273dc0c",
+      "bytes": 6358
+    },
+    {
+      "path": "sources/iris/pid1/fixed-decode-evidence.h",
+      "sha256": "4ed15eb329d871fa007dcc4ec0ebafbdca1bc7666a7c143deedc5368009ed60e",
+      "bytes": 1609
+    },
+    {
+      "path": "sources/iris/pid1/gadget-worker.c",
+      "sha256": "8b7adfb470f015b152f8a58ebe20710822711b59221a32feb719d83db021938b",
+      "bytes": 7060
+    },
+    {
+      "path": "sources/iris/pid1/gadget-worker.h",
+      "sha256": "a743d92b86bb28e77798f5c5da20d0886ecf45027fb9457ef9cea1576bb3dfef",
+      "bytes": 541
+    },
+    {
+      "path": "sources/iris/pid1/module-supervisor.c",
+      "sha256": "0f9916a3434b4319d2ca06c70319467b91dec6bce3860648f4f455ae18b25e3a",
+      "bytes": 9535
+    },
+    {
+      "path": "sources/iris/pid1/module-supervisor.h",
+      "sha256": "0a244180122e53fbb4179cc169c0ce23f6154bfa44549fda026b086ca0209718",
+      "bytes": 1993
+    },
+    {
+      "path": "sources/iris/pid1/ram-environment.c",
+      "sha256": "d9dfd43a2441b3b9c752ce2706b7c8b5027862a3382b9ea10dbfb2c0122fe766",
+      "bytes": 4122
+    },
+    {
+      "path": "sources/iris/pid1/ram-environment.h",
+      "sha256": "81cbc8e3e9e5a30409070b29d53151a89369c45245194fb1465f575f96cc0934",
+      "bytes": 486
+    },
+    {
+      "path": "sources/iris/pid1/serial-protocol.c",
+      "sha256": "d450a7956396d1af7178d3ea33871cb9f306007c7f1247233a212a0f5ae2763b",
+      "bytes": 10567
+    },
+    {
+      "path": "sources/iris/pid1/serial-protocol.h",
+      "sha256": "005c5be3e807aeb25aa9930d459eca5de5880f48f940800cb8163d95e81a8a04",
+      "bytes": 2684
+    },
+    {
+      "path": "sources/iris/pid1/source-manifest.json",
+      "sha256": "d123d892c6228546dbca82d6a19b384c1e2f2236a2fea647d158181cbc194b83",
+      "bytes": 13587
+    },
+    {
+      "path": "sources/iris/pid1/supervisor-sha256.h",
+      "sha256": "e480a4153f26d08db6aeff2bcedce980fdb6cfa4e35d55eeb23d200fb1fc694c",
+      "bytes": 2374
+    },
+    {
+      "path": "sources/iris/pid1/transport-state.h",
+      "sha256": "71c01651c8609d9b9f9c17f1d41de2869ac3d9eb2f0c575dbd273a2dd7f65c51",
+      "bytes": 3189
+    },
+    {
+      "path": "sources/iris/pid1/tty-worker.c",
+      "sha256": "7d00f1ae5f7a7a7157a81778e9ad0308af9f41ecfc4a0c89bb3002388f7941bc",
+      "bytes": 15999
+    },
+    {
+      "path": "sources/iris/pid1/tty-worker.h",
+      "sha256": "0aa2a462f08d0d257be9693d14a7354da34bf21dcec22848da3af281a87d6732",
+      "bytes": 3869
+    },
+    {
+      "path": "sources/iris/pid1/usb-init.c",
+      "sha256": "2c482d4313a6ae14f64876d34ea9a066241722911aa80369f03bf81185cce185",
+      "bytes": 15762
+    },
+    {
+      "path": "sources/iris/pid1/video-phase.h",
+      "sha256": "5a271559c0c6d3930c1db35442f59059d696538dcbb7c35209fd36cf63cde7c7",
+      "bytes": 2173
+    },
+    {
+      "path": "sources/iris/pid1/video-report-v2.h",
+      "sha256": "4e42f769a2a19c67fdbc07283115cc46a9889d3659f54bda08e9997779de427d",
+      "bytes": 1269
+    },
+    {
+      "path": "sources/iris/pid1/video-report.h",
+      "sha256": "0b89b65dd707ca061195f68e0b091dd1d50fe99e52f152b9e419a8d4dd225bf3",
+      "bytes": 1120
+    },
+    {
+      "path": "sources/iris/README.md",
+      "sha256": "8a0c31b25b81659e741b5744d160ec94ab5faab307607aafff327d68613e39a0",
+      "bytes": 4194
+    },
+    {
+      "path": "sources/iris/research/iris_buffer.c",
+      "sha256": "e50fec9ef582da1a5a23cc6327d68a5e7805e24a730b088d726ff5e92995041d",
+      "bytes": 39343
+    },
+    {
+      "path": "sources/iris/research/iris_buffer.h",
+      "sha256": "ff1404611d60f6b627c1769f813db3ff5bec4121ffe9485a374f7e5e5ce09e26",
+      "bytes": 5470
+    },
+    {
+      "path": "sources/iris/research/iris_common.c",
+      "sha256": "66512659a0b7f345b923f335ad687e5de3b1c8558e244cdbef72b7f2e23631c3",
+      "bytes": 7728
+    },
+    {
+      "path": "sources/iris/research/iris_common.h",
+      "sha256": "0db37b6644ddf652f9618f2402eccda47b05517c3f37ba588220edc43d727c27",
+      "bytes": 572
+    },
+    {
+      "path": "sources/iris/research/iris_core.c",
+      "sha256": "54291d1ca5357ceee2e9acf6f4a88bab869338b211ca3550834c98520a18a8e2",
+      "bytes": 24098
+    },
+    {
+      "path": "sources/iris/research/iris_core.h",
+      "sha256": "538fec671417d5245157c0faebe995662ddb5415f59bbf139a98d79c5907ccf2",
+      "bytes": 20233
+    },
+    {
+      "path": "sources/iris/research/iris_ctrls.c",
+      "sha256": "a584e6e1f1d75945ee228058ed8e7dcff4af69e8b208678d01c866c4b0e23d8b",
+      "bytes": 28408
+    },
+    {
+      "path": "sources/iris/research/iris_ctrls.h",
+      "sha256": "c4100a9878baabb33b759389dfe64bc4ee76f1cd05c174b83e2f6e3f57e703fd",
+      "bytes": 2101
+    },
+    {
+      "path": "sources/iris/research/iris_firmware.c",
+      "sha256": "f5e1e9f66fc435a3894e106a279ce3af97677ea71405dbcf0fa8ff41ca085e87",
+      "bytes": 3569
+    },
+    {
+      "path": "sources/iris/research/iris_firmware.h",
+      "sha256": "31779b314ec33390903dddf3c268dba749d3a6b964556edb5b7b4549a5d1f00f",
+      "bytes": 363
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_common.c",
+      "sha256": "5129de74c39ace73cc524cb3d5c09880f790670809dc29e49960ff27dc748027",
+      "bytes": 11409
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_common.h",
+      "sha256": "e975163173063cc8fb00b699a1411e12eba2065335c534ef725fbd3d9b60307d",
+      "bytes": 6651
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen1.h",
+      "sha256": "77983693519f3749dcaabccbf159066dc30a73c426c9758ec67323c2484ea86c",
+      "bytes": 410
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen1_command.c",
+      "sha256": "05376e91a2c20260202406418689a28d9f1a4cf87a46e57cf23749ac7882eb38",
+      "bytes": 32659
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen1_defines.h",
+      "sha256": "15de9f09b511a52f03ae1d5bbfdf0700222af70077eabbe57969e1e0fbac83e5",
+      "bytes": 12174
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen1_response.c",
+      "sha256": "a437b4edd8d76db3f8bd656592ab5a1b63c0fc59514be7118b87d98dd8697427",
+      "bytes": 20101
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2.h",
+      "sha256": "7db88f03d13dfd4175456d7fafe554278881b0e7042d23999abd06eaa859ba1b",
+      "bytes": 1565
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2_command.c",
+      "sha256": "f6024bfd74232d36a955a0cd132f29a28c51215f68c0511105fdffe1e9a6cb62",
+      "bytes": 53344
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2_defines.h",
+      "sha256": "b670a7da2be82d0e3324828d551a4e2cc156c121ea6afe52b4055f802f64bf84",
+      "bytes": 6307
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2_packet.c",
+      "sha256": "e5cd5659338d4fdef220a52ea0a1d830374dc0d87741a286ff75245b8bdb7fd4",
+      "bytes": 8697
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2_packet.h",
+      "sha256": "94f7e501fe670911a8d6f73f4102dad5c6910aa540ea7ac2548dfe8402f3d4c0",
+      "bytes": 4778
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_gen2_response.c",
+      "sha256": "eb1f55009b7b4ba6a6f4fbad701f63a85048438964d032ac275b072a127bfdfc",
+      "bytes": 68266
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_queue.c",
+      "sha256": "fe9097af32619410a67e6290114f085dbaaccdfdf2e980aa5b78acc536ab10c6",
+      "bytes": 10466
+    },
+    {
+      "path": "sources/iris/research/iris_hfi_queue.h",
+      "sha256": "39a6d56005b7ba7d2839ad7fb6058ec4f068c8464f73b9cc09d875742c4cf271",
+      "bytes": 6596
+    },
+    {
+      "path": "sources/iris/research/iris_instance.h",
+      "sha256": "82c617cdb5f44e90e88b7fabd1e26ef7218fb658742df4c7bee794dcae3457ce",
+      "bytes": 4956
+    },
+    {
+      "path": "sources/iris/research/iris_platform_common.h",
+      "sha256": "d8df4d8a4f09a28bf012fe2e25960226f73c1299e8c056c78a75b9ac5a645e99",
+      "bytes": 6427
+    },
+    {
+      "path": "sources/iris/research/iris_platform_gen2.c",
+      "sha256": "a6b19aeb587085dbf62381dd6a75449c3c4367b3c502818acfb3ad5c477a1745",
+      "bytes": 40241
+    },
+    {
+      "path": "sources/iris/research/iris_platform_qcs8300.h",
+      "sha256": "933d71df3659949b63e4f35227a29dc40c66bea8dc1ef67f1cbc9f14f25630f7",
+      "bytes": 15228
+    },
+    {
+      "path": "sources/iris/research/iris_platform_sm8250.c",
+      "sha256": "4be8643e29f3611c71ff058d22d285dbb763c88d7499328badb1c4ddd43ac958",
+      "bytes": 11586
+    },
+    {
+      "path": "sources/iris/research/iris_platform_sm8650.h",
+      "sha256": "a0b1eac96aa9bebe99deef54a4e8a2b2f6fea1ce7011778bebe8a179f58b92d9",
+      "bytes": 355
+    },
+    {
+      "path": "sources/iris/research/iris_platform_sm8750.h",
+      "sha256": "a11b86a167706c276c50b06eee699989009851bcc92993b19dd4bcf249cdc93a",
+      "bytes": 558
+    },
+    {
+      "path": "sources/iris/research/iris_power.c",
+      "sha256": "cdd0ebb66584a4e5a213acad65d0eea6a041d80e16c913361607cdb067ea2f92",
+      "bytes": 4900
+    },
+    {
+      "path": "sources/iris/research/iris_power.h",
+      "sha256": "ef223b142fd4260490a99d8aa035e0ac321cb3015ffad7dda78092821ac721c6",
+      "bytes": 257
+    },
+    {
+      "path": "sources/iris/research/iris_probe.c",
+      "sha256": "8d88d120b8ca3cdd7da4931b0868d8c20971ebc764845b87c65eb990670137ee",
+      "bytes": 56613
+    },
+    {
+      "path": "sources/iris/research/iris_resources.c",
+      "sha256": "c83f183de6aacd5a58579b9190121402e3b0b4f4d818297b832334f603321a84",
+      "bytes": 8589
+    },
+    {
+      "path": "sources/iris/research/iris_resources.h",
+      "sha256": "f2ef4d56873bf989f80a29d05deb9c3dbcb971eb4e70d3b883ae6bb582d6b917",
+      "bytes": 841
+    },
+    {
+      "path": "sources/iris/research/iris_state.c",
+      "sha256": "c0640708b1f90eeebc14e01a8ae659a86fd6a7f79906b8e6f0520faf96758377",
+      "bytes": 7542
+    },
+    {
+      "path": "sources/iris/research/iris_state.h",
+      "sha256": "b3d02c627ceee158882d1faaa410b4185a4a89521ffbfcd56f187e8740a341e6",
+      "bytes": 5292
+    },
+    {
+      "path": "sources/iris/research/iris_utils.c",
+      "sha256": "5d39b3b6cfe7529af7996dafc3c836ed008f4f5f24c18c65489257a745d92737",
+      "bytes": 5094
+    },
+    {
+      "path": "sources/iris/research/iris_utils.h",
+      "sha256": "e1783f9758e24c7882e7389d9f8e90a83604d437650766fd0f7e37be5f46ccdc",
+      "bytes": 1550
+    },
+    {
+      "path": "sources/iris/research/iris_vb2.c",
+      "sha256": "242927c6800674a67e0030cadca4227deb79b5681f3c414a98f4936c49040f6b",
+      "bytes": 12400
+    },
+    {
+      "path": "sources/iris/research/iris_vb2.h",
+      "sha256": "f50ca9a6feef8d44efe1bc315da1445ce82dee1d0daca9d808fb9c2daf2ddf54",
+      "bytes": 668
+    },
+    {
+      "path": "sources/iris/research/iris_vdec.c",
+      "sha256": "776b093b81e09bd0a368b24a929637574a22c3ac9232653bc83d33fecb317980",
+      "bytes": 15837
+    },
+    {
+      "path": "sources/iris/research/iris_vdec.h",
+      "sha256": "cdf303a50e475188f151b8426a580ffdef3dbfce2ded06ebca54d24e4db8e430",
+      "bytes": 1021
+    },
+    {
+      "path": "sources/iris/research/iris_venc.c",
+      "sha256": "5e5d726ed3f1ec145c7c3d1c5769340e05449feb25c2c3cbcefab8569ebd0d69",
+      "bytes": 15872
+    },
+    {
+      "path": "sources/iris/research/iris_venc.h",
+      "sha256": "bd7515d05ea1ee68c4abf1a25120520d1c6119662707e63749df464160bea833",
+      "bytes": 1201
+    },
+    {
+      "path": "sources/iris/research/iris_vidc.c",
+      "sha256": "54c50c6d5d6ed35a707d3897cd831e322255bbe1315aea773169a3cd68494760",
+      "bytes": 49190
+    },
+    {
+      "path": "sources/iris/research/iris_vidc.h",
+      "sha256": "3b3e11c7eed62f4f8a54fd7c4c4acdd67133d82688c0584fd195e76bb6a9a7c1",
+      "bytes": 381
+    },
+    {
+      "path": "sources/iris/research/iris_vpu2.c",
+      "sha256": "9b3c91bcdaf5e81a9229aa2eb5aa4360ebeeeaa6de25ffbd8eb695846bd8f318",
+      "bytes": 1323
+    },
+    {
+      "path": "sources/iris/research/iris_vpu3x.c",
+      "sha256": "5af26cf987d8d4e003cf8921878d2113556582e2ba597be7680213b7024fff66",
+      "bytes": 14787
+    },
+    {
+      "path": "sources/iris/research/iris_vpu_buffer.c",
+      "sha256": "73cfcc60c1d583d78b20c71a9e2a47bd3d2247337c22ea8493c04d352c9efb7b",
+      "bytes": 53209
+    },
+    {
+      "path": "sources/iris/research/iris_vpu_buffer.h",
+      "sha256": "5c638d44e1fe3dadf2a2376ae5dc003f120c2f3d66a51da37e6170a54771e4d7",
+      "bytes": 4924
+    },
+    {
+      "path": "sources/iris/research/iris_vpu_common.c",
+      "sha256": "55635e66eefb1ee72064c0feadabedc9bc3b9f9f540e71bfa7947648d98b76fc",
+      "bytes": 21041
+    },
+    {
+      "path": "sources/iris/research/iris_vpu_common.h",
+      "sha256": "969a30858144d528fbcb13c6ef7320fc648b36b2058b3fd14d42a37fbab71490",
+      "bytes": 1708
+    },
+    {
+      "path": "sources/iris/research/iris_vpu_register_defines.h",
+      "sha256": "0bdb029ef51fa1f5ad96e2b29c73fd81319fd3e74f7d29a65a5316e579090d48",
+      "bytes": 442
+    },
+    {
+      "path": "sources/iris/research/Kconfig",
+      "sha256": "ee9eb0c088ffd1203ff31ece8da9294bb3f4aa4d54d22f8fd095eca6e0554710",
+      "bytes": 558
+    },
+    {
+      "path": "sources/iris/research/Makefile",
+      "sha256": "4f41ef9760d8c5043768c4d40baeaedffede5686a06059662388719e2f917950",
+      "bytes": 556
+    },
+    {
+      "path": "sources/iris/research/source-manifest.json",
+      "sha256": "bf2e7923aa9cb920a3924f6467ff3d8d8fef4b26791f934f8feaeeadc57480c2",
+      "bytes": 21576
+    },
+    {
+      "path": "sources/iris/verified/iris_buffer.c",
+      "sha256": "1c202fa6860589715f01884e00b9e323f410d782795b287c96d7bd1de0c80a46",
+      "bytes": 34904
+    },
+    {
+      "path": "sources/iris/verified/iris_buffer.h",
+      "sha256": "954abdb13954a186f0c490af6776bebc144475753847df66d0ca82407589a0eb",
+      "bytes": 4901
+    },
+    {
+      "path": "sources/iris/verified/iris_common.c",
+      "sha256": "03df2b9ee77b7a3c34f308e52af79fbaf64a24d3f239bf46b1469834ed40c6d8",
+      "bytes": 7325
+    },
+    {
+      "path": "sources/iris/verified/iris_common.h",
+      "sha256": "0db37b6644ddf652f9618f2402eccda47b05517c3f37ba588220edc43d727c27",
+      "bytes": 572
+    },
+    {
+      "path": "sources/iris/verified/iris_core.c",
+      "sha256": "edd9ca61910b59d5de189a49108631d7460b50330b1f43c2901b60b8a36abccc",
+      "bytes": 24542
+    },
+    {
+      "path": "sources/iris/verified/iris_core.h",
+      "sha256": "a874609f3a65608fbe73d03d7bf5d34a317856948ecad4bc71c87f63e630c5d4",
+      "bytes": 18746
+    },
+    {
+      "path": "sources/iris/verified/iris_ctrls.c",
+      "sha256": "a584e6e1f1d75945ee228058ed8e7dcff4af69e8b208678d01c866c4b0e23d8b",
+      "bytes": 28408
+    },
+    {
+      "path": "sources/iris/verified/iris_ctrls.h",
+      "sha256": "c4100a9878baabb33b759389dfe64bc4ee76f1cd05c174b83e2f6e3f57e703fd",
+      "bytes": 2101
+    },
+    {
+      "path": "sources/iris/verified/iris_firmware.c",
+      "sha256": "f5e1e9f66fc435a3894e106a279ce3af97677ea71405dbcf0fa8ff41ca085e87",
+      "bytes": 3569
+    },
+    {
+      "path": "sources/iris/verified/iris_firmware.h",
+      "sha256": "31779b314ec33390903dddf3c268dba749d3a6b964556edb5b7b4549a5d1f00f",
+      "bytes": 363
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_common.c",
+      "sha256": "5129de74c39ace73cc524cb3d5c09880f790670809dc29e49960ff27dc748027",
+      "bytes": 11409
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_common.h",
+      "sha256": "e975163173063cc8fb00b699a1411e12eba2065335c534ef725fbd3d9b60307d",
+      "bytes": 6651
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen1.h",
+      "sha256": "77983693519f3749dcaabccbf159066dc30a73c426c9758ec67323c2484ea86c",
+      "bytes": 410
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen1_command.c",
+      "sha256": "05376e91a2c20260202406418689a28d9f1a4cf87a46e57cf23749ac7882eb38",
+      "bytes": 32659
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen1_defines.h",
+      "sha256": "15de9f09b511a52f03ae1d5bbfdf0700222af70077eabbe57969e1e0fbac83e5",
+      "bytes": 12174
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen1_response.c",
+      "sha256": "a437b4edd8d76db3f8bd656592ab5a1b63c0fc59514be7118b87d98dd8697427",
+      "bytes": 20101
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2.h",
+      "sha256": "7db88f03d13dfd4175456d7fafe554278881b0e7042d23999abd06eaa859ba1b",
+      "bytes": 1565
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2_command.c",
+      "sha256": "49635ed80283d3e63bd48cc34722df76d2dd739a26b18493170c3594957d8f30",
+      "bytes": 52240
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2_defines.h",
+      "sha256": "b670a7da2be82d0e3324828d551a4e2cc156c121ea6afe52b4055f802f64bf84",
+      "bytes": 6307
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2_packet.c",
+      "sha256": "1d7ec44adff33a94932b3f8f471c5975bd1d435533ac9c806b8f3dcc21af705f",
+      "bytes": 8281
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2_packet.h",
+      "sha256": "94f7e501fe670911a8d6f73f4102dad5c6910aa540ea7ac2548dfe8402f3d4c0",
+      "bytes": 4778
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_gen2_response.c",
+      "sha256": "b983e3b3553271198ffe391f9575c13a45e15e013a59afbbe952d5a43e138aef",
+      "bytes": 60871
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_queue.c",
+      "sha256": "4e6d5c5d641c53459393a1953319a74b747ef146f9065a9410eec9768f71359e",
+      "bytes": 10374
+    },
+    {
+      "path": "sources/iris/verified/iris_hfi_queue.h",
+      "sha256": "39a6d56005b7ba7d2839ad7fb6058ec4f068c8464f73b9cc09d875742c4cf271",
+      "bytes": 6596
+    },
+    {
+      "path": "sources/iris/verified/iris_instance.h",
+      "sha256": "ce7a77c76e6ef21e998a1ab2254da3d04b527292d2962c5237ef2eaf44ec87df",
+      "bytes": 4623
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_common.h",
+      "sha256": "d8df4d8a4f09a28bf012fe2e25960226f73c1299e8c056c78a75b9ac5a645e99",
+      "bytes": 6427
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_gen2.c",
+      "sha256": "a6b19aeb587085dbf62381dd6a75449c3c4367b3c502818acfb3ad5c477a1745",
+      "bytes": 40241
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_qcs8300.h",
+      "sha256": "933d71df3659949b63e4f35227a29dc40c66bea8dc1ef67f1cbc9f14f25630f7",
+      "bytes": 15228
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_sm8250.c",
+      "sha256": "4be8643e29f3611c71ff058d22d285dbb763c88d7499328badb1c4ddd43ac958",
+      "bytes": 11586
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_sm8650.h",
+      "sha256": "a0b1eac96aa9bebe99deef54a4e8a2b2f6fea1ce7011778bebe8a179f58b92d9",
+      "bytes": 355
+    },
+    {
+      "path": "sources/iris/verified/iris_platform_sm8750.h",
+      "sha256": "a11b86a167706c276c50b06eee699989009851bcc92993b19dd4bcf249cdc93a",
+      "bytes": 558
+    },
+    {
+      "path": "sources/iris/verified/iris_power.c",
+      "sha256": "cdd0ebb66584a4e5a213acad65d0eea6a041d80e16c913361607cdb067ea2f92",
+      "bytes": 4900
+    },
+    {
+      "path": "sources/iris/verified/iris_power.h",
+      "sha256": "ef223b142fd4260490a99d8aa035e0ac321cb3015ffad7dda78092821ac721c6",
+      "bytes": 257
+    },
+    {
+      "path": "sources/iris/verified/iris_probe.c",
+      "sha256": "2e4e49851de57dfcd01253dd32207f70588e1cc59e0a3203d96bc20d3b502a0e",
+      "bytes": 56009
+    },
+    {
+      "path": "sources/iris/verified/iris_resources.c",
+      "sha256": "c83f183de6aacd5a58579b9190121402e3b0b4f4d818297b832334f603321a84",
+      "bytes": 8589
+    },
+    {
+      "path": "sources/iris/verified/iris_resources.h",
+      "sha256": "f2ef4d56873bf989f80a29d05deb9c3dbcb971eb4e70d3b883ae6bb582d6b917",
+      "bytes": 841
+    },
+    {
+      "path": "sources/iris/verified/iris_state.c",
+      "sha256": "c0640708b1f90eeebc14e01a8ae659a86fd6a7f79906b8e6f0520faf96758377",
+      "bytes": 7542
+    },
+    {
+      "path": "sources/iris/verified/iris_state.h",
+      "sha256": "b3d02c627ceee158882d1faaa410b4185a4a89521ffbfcd56f187e8740a341e6",
+      "bytes": 5292
+    },
+    {
+      "path": "sources/iris/verified/iris_utils.c",
+      "sha256": "f00cbff180a78e0753532a6b84960052ef5a13f2e71a551e767b961a2ccab519",
+      "bytes": 4944
+    },
+    {
+      "path": "sources/iris/verified/iris_utils.h",
+      "sha256": "e1783f9758e24c7882e7389d9f8e90a83604d437650766fd0f7e37be5f46ccdc",
+      "bytes": 1550
+    },
+    {
+      "path": "sources/iris/verified/iris_vb2.c",
+      "sha256": "a4164f40aaf9a59cec7a9f99fcfe23c0a388e148940b85e07c6cf1473d41cbd7",
+      "bytes": 12190
+    },
+    {
+      "path": "sources/iris/verified/iris_vb2.h",
+      "sha256": "f50ca9a6feef8d44efe1bc315da1445ce82dee1d0daca9d808fb9c2daf2ddf54",
+      "bytes": 668
+    },
+    {
+      "path": "sources/iris/verified/iris_vdec.c",
+      "sha256": "1fa3ede5920af24fc05b51a492e9ff9ec8a98fb374691331d073a2f69f711aeb",
+      "bytes": 15601
+    },
+    {
+      "path": "sources/iris/verified/iris_vdec.h",
+      "sha256": "cdf303a50e475188f151b8426a580ffdef3dbfce2ded06ebca54d24e4db8e430",
+      "bytes": 1021
+    },
+    {
+      "path": "sources/iris/verified/iris_venc.c",
+      "sha256": "5e5d726ed3f1ec145c7c3d1c5769340e05449feb25c2c3cbcefab8569ebd0d69",
+      "bytes": 15872
+    },
+    {
+      "path": "sources/iris/verified/iris_venc.h",
+      "sha256": "bd7515d05ea1ee68c4abf1a25120520d1c6119662707e63749df464160bea833",
+      "bytes": 1201
+    },
+    {
+      "path": "sources/iris/verified/iris_vidc.c",
+      "sha256": "642dacb15b738d620648d6ac48578ae5abf387e3f406a0ec46bc51372f4468bc",
+      "bytes": 37818
+    },
+    {
+      "path": "sources/iris/verified/iris_vidc.h",
+      "sha256": "3b3e11c7eed62f4f8a54fd7c4c4acdd67133d82688c0584fd195e76bb6a9a7c1",
+      "bytes": 381
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu2.c",
+      "sha256": "9b3c91bcdaf5e81a9229aa2eb5aa4360ebeeeaa6de25ffbd8eb695846bd8f318",
+      "bytes": 1323
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu3x.c",
+      "sha256": "5af26cf987d8d4e003cf8921878d2113556582e2ba597be7680213b7024fff66",
+      "bytes": 14787
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu_buffer.c",
+      "sha256": "73cfcc60c1d583d78b20c71a9e2a47bd3d2247337c22ea8493c04d352c9efb7b",
+      "bytes": 53209
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu_buffer.h",
+      "sha256": "5c638d44e1fe3dadf2a2376ae5dc003f120c2f3d66a51da37e6170a54771e4d7",
+      "bytes": 4924
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu_common.c",
+      "sha256": "c5e3d27957f6a8e4711e5d80098b629212eadfdd32e094b58f6d4f8995a770db",
+      "bytes": 20094
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu_common.h",
+      "sha256": "969a30858144d528fbcb13c6ef7320fc648b36b2058b3fd14d42a37fbab71490",
+      "bytes": 1708
+    },
+    {
+      "path": "sources/iris/verified/iris_vpu_register_defines.h",
+      "sha256": "0bdb029ef51fa1f5ad96e2b29c73fd81319fd3e74f7d29a65a5316e579090d48",
+      "bytes": 442
+    },
+    {
+      "path": "sources/iris/verified/Kconfig",
+      "sha256": "ee9eb0c088ffd1203ff31ece8da9294bb3f4aa4d54d22f8fd095eca6e0554710",
+      "bytes": 558
+    },
+    {
+      "path": "sources/iris/verified/Makefile",
+      "sha256": "4f41ef9760d8c5043768c4d40baeaedffede5686a06059662388719e2f917950",
+      "bytes": 556
+    },
+    {
+      "path": "sources/iris/verified/source-manifest.json",
+      "sha256": "ea7d1a33d985ce4ff30fbe10d19ad1bd037928b34c3375fa2207ee2b6efbd49d",
+      "bytes": 21314
+    },
+    {
+      "path": "tests/iris/cold_power_test.py",
+      "sha256": "279ba5c23620dd208ccba54661c31c071bf11b34a1fc934471242e603e7e1a5e",
+      "bytes": 12184
+    },
+    {
+      "path": "tests/iris/export-seed.json",
+      "sha256": "2ee2d745e6754734794ad65dc139caeca704bca980ff24b3a5d33c3ee9605c87",
+      "bytes": 594
+    },
+    {
+      "path": "tests/iris/response_test.py",
+      "sha256": "97502e54f95af7ed836d083eeecda382b1b4204ec766267d57ead748be9aa838",
+      "bytes": 22866
+    },
+    {
+      "path": "tests/iris/support.py",
+      "sha256": "ea14989b38112ea2fe83de6893b392e2f5a587c55618dc54b5bbcd4821e3e842",
+      "bytes": 3132
+    },
+    {
+      "path": "tests/iris/test-results.json",
+      "sha256": "4258ab38c6ddc1d461cae5512a64cfc9ce425e0f232c250148330ee7a044dec3",
+      "bytes": 16087
+    },
+    {
+      "path": "tests/iris/wrapper_test.py",
+      "sha256": "9bda44c34aad5f6c51412a2d3777ddd03d9fbaf1822d71f74d4dda9f655a0225",
+      "bytes": 9391
+    }
+  ],
+  "source_counts": {
+    "verified": 57,
+    "research": 57,
+    "clients": 8,
+    "pid1": 31
+  },
+  "source_count": 153,
+  "original_sources_and_manifests_unchanged": true,
+  "gate_defaults": [
+    {
+      "role": "verified",
+      "macro": "IRIS_RELEASE_OBSERVER_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "verified",
+      "macro": "IRIS_STOP_OBSERVER_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "verified",
+      "macro": "IRIS_INIT_ONLY_EXECUTION_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "verified",
+      "macro": "IRIS_INIT_ONLY_PROVIDER_ADMISSION_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "verified",
+      "macro": "IRIS_DECODE_ONCE_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_RELEASE_OBSERVER_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_STOP_OBSERVER_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_NATIVE_REPEAT_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_NATIVE_REPEAT_RECLAIM_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_INIT_ONLY_EXECUTION_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_INIT_ONLY_PROVIDER_ADMISSION_ENABLED",
+      "default": 0
+    },
+    {
+      "role": "research",
+      "macro": "IRIS_DECODE_ONCE_ENABLED",
+      "default": 0
+    }
+  ],
+  "published_execution_gates_disabled": true,
+  "private_paths_uuid_and_binary_scan_passed": true,
+  "source_origins": {
+    "upstream_commit": null,
+    "exact_fnos_source_pairing_authenticated": false,
+    "reference_version": "6.18.18"
+  },
+  "actual_host_passed_runs": 6,
+  "parser_full_fixture_tested": false,
+  "test_original_sha256": {
+    "response_test": "3ba2f5fa1ca8749e2a0c1e50031a25cc80195fc6fa0fe08aa76b554019694e23",
+    "wrapper_test": "f14b4507f4361ff71fd881d027c9a7d54cbc12d3d9f01b59e6026a4c3b1884c7",
+    "cold_power_test": "366d5d6b719545be625835fe400965f8aa2423e5183eef6633c21ecd1d22d80c",
+    "historical_bad_checked_body_sha256": "a5864bfb1285085d98ba04efa053832788ab22232c532e66a7bdd14e9b3d7fce"
+  },
+  "production_admitted": false
+}

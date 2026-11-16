@@ -1,0 +1,123 @@
+--- a/iris_platform_common.h
++++ b/iris_platform_common.h
+@@ -225,6 +225,8 @@
+ 	u32 hw_response_timeout;
+ 	struct ubwc_config_data *ubwc_config;
+ 	u32 num_vpp_pipe;
++	bool no_opb;
++	bool no_tz_fifo_reset;
+ 	u32 max_session_count;
+ 	/* max number of macroblocks per frame supported */
+ 	u32 max_core_mbpf;
+--- a/iris_platform_gen2.c
++++ b/iris_platform_gen2.c
+@@ -1180,6 +1180,8 @@
+ 	.hw_response_timeout = HW_RESPONSE_TIMEOUT_VALUE,
+ 	.ubwc_config = &ubwc_config_sm8450,
+ 	.num_vpp_pipe = 4,
++	.no_opb = true,
++	.no_tz_fifo_reset = true,
+ 	.max_session_count = 16,
+ 	.max_core_mbpf = NUM_MBS_8K,
+ 	.max_core_mbps = ((7680 * 4320) / 256) * 60,
+--- a/iris_hfi_gen2_command.c
++++ b/iris_hfi_gen2_command.c
+@@ -992,6 +992,7 @@
+ {
+ 	struct iris_inst_hfi_gen2 *inst_hfi_gen2 = to_iris_inst_hfi_gen2(inst);
+ 	u32 payload = HFI_CMD_SETTINGS_CHANGE;
++	bool bare = inst->core->iris_platform_data->no_opb;
+ 
+ 	iris_hfi_gen2_packet_session_command(inst,
+ 					     HFI_CMD_RESUME,
+@@ -999,9 +1000,9 @@
+ 					     HFI_HOST_FLAGS_INTR_REQUIRED),
+ 					     iris_hfi_gen2_get_port(inst, plane),
+ 					     inst->session_id,
+-					     HFI_PAYLOAD_U32,
+-					     &payload,
+-					     sizeof(u32));
++					     bare ? HFI_PAYLOAD_NONE : HFI_PAYLOAD_U32,
++					     bare ? NULL : &payload,
++					     bare ? 0 : sizeof(u32));
+ 
+ 	return iris_hfi_queue_cmd_write(inst->core, inst_hfi_gen2->packet,
+ 					inst_hfi_gen2->packet->size);
+@@ -1101,7 +1102,7 @@
+ }
+ 
+ static void iris_hfi_gen2_get_buffer(u32 domain, struct iris_buffer *buffer,
+-				     struct iris_hfi_buffer *buf)
++				     struct iris_hfi_buffer *buf, bool cb_flag)
+ {
+ 	memset(buf, 0, sizeof(*buf));
+ 	buf->type = iris_hfi_gen2_buf_type_from_driver(domain, buffer->type);
+@@ -1116,7 +1117,8 @@
+ 	buf->data_size = buffer->data_size;
+ 	if (buffer->attr & BUF_ATTR_PENDING_RELEASE)
+ 		buf->flags |= HFI_BUF_HOST_FLAG_RELEASE;
+-	buf->flags |= HFI_BUF_HOST_FLAGS_CB_NON_SECURE;
++	if (cb_flag)
++		buf->flags |= HFI_BUF_HOST_FLAGS_CB_NON_SECURE;
+ 	buf->timestamp = buffer->timestamp;
+ }
+ 
+@@ -1127,7 +1129,8 @@
+ 	u32 port;
+ 	int ret;
+ 
+-	iris_hfi_gen2_get_buffer(inst->domain, buffer, &hfi_buffer);
++	iris_hfi_gen2_get_buffer(inst->domain, buffer, &hfi_buffer,
++				 !inst->core->iris_platform_data->no_opb);
+ 	if (buffer->type == BUF_COMV) {
+ 		ret = iris_set_num_comv(inst);
+ 		if (ret)
+@@ -1154,7 +1157,8 @@
+ 	struct iris_hfi_buffer hfi_buffer;
+ 	u32 port;
+ 
+-	iris_hfi_gen2_get_buffer(inst->domain, buffer, &hfi_buffer);
++	iris_hfi_gen2_get_buffer(inst->domain, buffer, &hfi_buffer,
++				 !inst->core->iris_platform_data->no_opb);
+ 	hfi_buffer.flags |= HFI_BUF_HOST_FLAG_RELEASE;
+ 	port = iris_hfi_gen2_get_port_from_buf_type(inst, buffer->type);
+ 
+--- a/iris_vpu_common.c
++++ b/iris_vpu_common.c
+@@ -243,11 +243,13 @@
+ 	if (ret)
+ 		goto disable_power;
+ 
+-	writel(CTL_AXI_CLK_HALT | CTL_CLK_HALT,
+-	       core->reg_base + WRAPPER_TZ_CTL_AXI_CLOCK_CONFIG);
+-	writel(RESET_HIGH, core->reg_base + WRAPPER_TZ_QNS4PDXFIFO_RESET);
+-	writel(0x0, core->reg_base + WRAPPER_TZ_QNS4PDXFIFO_RESET);
+-	writel(0x0, core->reg_base + WRAPPER_TZ_CTL_AXI_CLOCK_CONFIG);
++	if (!core->iris_platform_data->no_tz_fifo_reset) {
++		writel(CTL_AXI_CLK_HALT | CTL_CLK_HALT,
++		       core->reg_base + WRAPPER_TZ_CTL_AXI_CLOCK_CONFIG);
++		writel(RESET_HIGH, core->reg_base + WRAPPER_TZ_QNS4PDXFIFO_RESET);
++		writel(0x0, core->reg_base + WRAPPER_TZ_QNS4PDXFIFO_RESET);
++		writel(0x0, core->reg_base + WRAPPER_TZ_CTL_AXI_CLOCK_CONFIG);
++	}
+ 
+ disable_power:
+ 	iris_disable_unprepare_clock(core, IRIS_CTRL_CLK);
+--- a/iris_vdec.c
++++ b/iris_vdec.c
+@@ -333,6 +333,15 @@
+ 	if (ret)
+ 		return ret;
+ 
++	if (inst->core->iris_platform_data->no_opb) {
++		ret = iris_set_stage(inst, STAGE);
++		if (ret)
++			return ret;
++		ret = iris_set_pipe(inst, PIPE);
++		if (ret)
++			return ret;
++	}
++
+ 	iris_get_internal_buffers(inst, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+ 
+ 	ret = iris_destroy_dequeued_internal_buffers(inst, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);

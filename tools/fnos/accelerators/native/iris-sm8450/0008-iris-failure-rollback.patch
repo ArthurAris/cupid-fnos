@@ -1,0 +1,228 @@
+--- a/iris_core.c
++++ b/iris_core.c
+@@ -12,7 +12,10 @@
+ 
+ void iris_core_deinit(struct iris_core *core)
+ {
+-	pm_runtime_resume_and_get(core->dev);
++	int ret = pm_runtime_resume_and_get(core->dev);
++
++	if (ret < 0)
++		return;
+ 
+ 	mutex_lock(&core->lock);
+ 	if (core->state != IRIS_CORE_DEINIT) {
+@@ -85,7 +88,13 @@
+ 
+ 	mutex_unlock(&core->lock);
+ 
+-	return iris_wait_for_system_response(core);
++	ret = iris_wait_for_system_response(core);
++	if (!ret)
++		return 0;
++	mutex_lock(&core->lock);
++	if (core->state == IRIS_CORE_DEINIT)
++		goto exit;
++	goto error_unload_fw;
+ 
+ error_unload_fw:
+ 	iris_fw_unload(core);
+--- a/iris_common.c
++++ b/iris_common.c
+@@ -52,7 +52,11 @@
+ 	enum iris_inst_sub_state set_sub_state = 0;
+ 	int ret;
+ 
+-	iris_scale_power(inst);
++	if (inst->state == IRIS_INST_ERROR || inst->core->state != IRIS_CORE_INIT)
++		return -EIO;
++	ret = iris_scale_power(inst);
++	if (ret)
++		return ret;
+ 
+ 	ret = hfi_ops->session_start(inst, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+ 	if (ret)
+@@ -95,7 +99,11 @@
+ 	bool drain_active, drc_active, first_ipsc;
+ 	int ret = 0;
+ 
+-	iris_scale_power(inst);
++	if (inst->state == IRIS_INST_ERROR || inst->core->state != IRIS_CORE_INIT)
++		return -EIO;
++	ret = iris_scale_power(inst);
++	if (ret)
++		return ret;
+ 
+ 	first_ipsc = inst->sub_state & IRIS_INST_SUB_FIRST_IPSC;
+ 
+--- a/iris_buffer.c
++++ b/iris_buffer.c
+@@ -496,6 +496,7 @@
+ 	u32 internal_buffer_count, i, j;
+ 	struct iris_buffers *buffers;
+ 	const u32 *internal_buf_type;
++	struct list_head *original_tail[BUF_TYPE_MAX];
+ 	int ret;
+ 
+ 	if (inst->domain == DECODER) {
+@@ -516,16 +517,36 @@
+ 		}
+ 	}
+ 
++	if (internal_buffer_count > BUF_TYPE_MAX)
++		return -EINVAL;
++	for (i = 0; i < internal_buffer_count; i++) {
++		if (internal_buf_type[i] >= BUF_TYPE_MAX)
++			return -EINVAL;
++		original_tail[i] = inst->buffers[internal_buf_type[i]].list.prev;
++	}
+ 	for (i = 0; i < internal_buffer_count; i++) {
+ 		buffers = &inst->buffers[internal_buf_type[i]];
+ 		for (j = 0; j < buffers->min_count; j++) {
+ 			ret = iris_create_internal_buffer(inst, internal_buf_type[i], j);
+ 			if (ret)
+-				return ret;
+-		}
+-	}
+-
+-	return 0;
++				goto rollback;
++		}
++	}
++
++	return 0;
++
++rollback:
++	/* Only this call's unsubmitted suffix may be reclaimed. */
++	for (i = 0; i < internal_buffer_count; i++) {
++		struct list_head *head = &inst->buffers[internal_buf_type[i]].list;
++
++		while (head->prev != original_tail[i]) {
++			struct iris_buffer *buffer = list_last_entry(head, struct iris_buffer, list);
++
++			iris_destroy_internal_buffer(inst, buffer);
++		}
++	}
++	return ret;
+ }
+ 
+ int iris_queue_buffer(struct iris_inst *inst, struct iris_buffer *buf)
+@@ -748,15 +769,16 @@
+ 	int ret;
+ 	u32 i;
+ 
+-	if (!list_empty(&buffers->list))
+-		return 0;
+-
+-	iris_fill_internal_buf_info(inst, buffer_type);
+-
+-	for (i = 0; i < buffers->min_count; i++) {
+-		ret = iris_create_internal_buffer(inst, buffer_type, i);
+-		if (ret)
+-			return ret;
++	if (list_empty(&buffers->list)) {
++		iris_fill_internal_buf_info(inst, buffer_type);
++		for (i = 0; i < buffers->min_count; i++) {
++			ret = iris_create_internal_buffer(inst, buffer_type, i);
++			if (ret) {
++				list_for_each_entry_safe(buffer, next, &buffers->list, list)
++					iris_destroy_internal_buffer(inst, buffer);
++				return ret;
++			}
++		}
+ 	}
+ 
+ 	list_for_each_entry_safe(buffer, next, &buffers->list, list) {
+@@ -796,7 +818,11 @@
+ 	struct iris_buffer *buf;
+ 	int ret;
+ 
+-	iris_scale_power(inst);
++	if (inst->state == IRIS_INST_ERROR || inst->core->state != IRIS_CORE_INIT)
++		return -EIO;
++	ret = iris_scale_power(inst);
++	if (ret)
++		return ret;
+ 
+ 	if (buf_type == BUF_INPUT) {
+ 		v4l2_m2m_for_each_src_buf_safe(m2m_ctx, buffer, n) {
+--- a/iris_vdec.c
++++ b/iris_vdec.c
+@@ -366,6 +366,9 @@
+ {
+ 	int ret;
+ 
++	if (inst->state == IRIS_INST_ERROR || inst->core->state != IRIS_CORE_INIT)
++		return -EIO;
++
+ 	ret = iris_set_properties(inst, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+ 	if (ret)
+ 		return ret;
+@@ -404,6 +407,9 @@
+ {
+ 	const struct iris_hfi_command_ops *hfi_ops = inst->core->hfi_ops;
+ 	int ret;
++
++	if (inst->state == IRIS_INST_ERROR || inst->core->state != IRIS_CORE_INIT)
++		return -EIO;
+ 
+ 	ret = hfi_ops->session_set_config_params(inst, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+ 	if (ret)
+--- a/iris_hfi_gen2_response.c
++++ b/iris_hfi_gen2_response.c
+@@ -559,7 +559,7 @@
+ 	return ret;
+ }
+ 
+-static void iris_hfi_gen2_read_input_subcr_params(struct iris_inst *inst)
++static int iris_hfi_gen2_read_input_subcr_params(struct iris_inst *inst)
+ {
+ 	struct iris_inst_hfi_gen2 *inst_hfi_gen2 = to_iris_inst_hfi_gen2(inst);
+ 	struct v4l2_pix_format_mplane *pixmp_ip = &inst->fmt_src->fmt.pix_mp;
+@@ -587,14 +587,14 @@
+ 	    (subsc_params.crop_offsets[0] >> 16) +
+ 	    (subsc_params.crop_offsets[1] >> 16) >= width) {
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+-		return;
++		return -EINVAL;
+ 	}
+ 	pixmp_ip->width = width;
+ 	pixmp_ip->height = height;
+ 
+ 	if (iris_apply_capture_layout(inst, width, height)) {
+ 		iris_inst_change_state(inst, IRIS_INST_ERROR);
+-		return;
++		return -EINVAL;
+ 	}
+ 
+ 	matrix_coeff = subsc_params.color_info & 0xFF;
+@@ -672,6 +672,7 @@
+ 
+ 	dst_q = v4l2_m2m_get_dst_vq(inst->m2m_ctx);
+ 	dst_q->min_reqbufs_allocation = inst->buffers[BUF_OUTPUT].min_count;
++	return 0;
+ }
+ 
+ static int iris_hfi_gen2_handle_src_change(struct iris_inst *inst,
+@@ -686,7 +687,9 @@
+ 	if (ret)
+ 		return ret;
+ 
+-	iris_hfi_gen2_read_input_subcr_params(inst);
++	ret = iris_hfi_gen2_read_input_subcr_params(inst);
++	if (ret)
++		return ret;
+ 	iris_vdec_src_change(inst);
+ 
+ 	return 0;
+--- a/iris_vidc.c
++++ b/iris_vidc.c
+@@ -231,6 +231,8 @@
+ 	if (inst->state == IRIS_INST_DEINIT)
+ 		return;
+ 
++	if (iris_hfi_pending_active(&inst->control_pending))
++		return;
+ 	reinit_completion(&inst->completion);
+ 
+ 	ret = hfi_ops->session_close(inst);

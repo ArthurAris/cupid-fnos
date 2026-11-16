@@ -1,0 +1,23 @@
+[Unit]
+Description=cupid ADSP/battery telemetry (fail-closed, optional)
+After=local-fs.target systemd-modules-load.service
+Before=trim_sac.service resmon_service.service cupid-storage.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh /usr/local/lib/cupid/adsp/start.sh
+ExecStopPost=/bin/sh /usr/local/lib/cupid/adsp/start.sh --failure-fallback
+# Loader: 90s startup + 10s best-effort fallback; reserve 20s before systemd timeout.
+TimeoutStartSec=120
+TimeoutStopSec=20
+KillMode=control-group
+Restart=no
+# Nonzero degraded/failed is deliberate. NAS consumers may Wants/After this unit,
+# never Requires it. No enable Condition: disabled/wrong-env still tries fallback.
+# StopPost skips SERVICE_RESULT=success; timeout/SIGKILL can run a fresh fallback.
+# This cannot guarantee recovery from a kernel hang or an uninterruptible modprobe.
+
+[Install]
+WantedBy=multi-user.target

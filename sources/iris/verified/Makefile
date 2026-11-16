@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
+obj-m := cupid_qcom_iris.o
+cupid_qcom_iris-y := iris_buffer.o iris_common.o iris_core.o iris_ctrls.o iris_firmware.o iris_hfi_common.o iris_hfi_gen1_command.o iris_hfi_gen1_response.o iris_hfi_gen2_command.o iris_hfi_gen2_packet.o iris_hfi_gen2_response.o iris_hfi_queue.o iris_platform_gen2.o iris_power.o iris_probe.o iris_resources.o iris_state.o iris_utils.o iris_vidc.o iris_vb2.o iris_vdec.o iris_venc.o iris_vpu2.o iris_vpu3x.o iris_vpu_buffer.o iris_vpu_common.o iris_platform_sm8250.o
+ccflags-y += -I$(src)

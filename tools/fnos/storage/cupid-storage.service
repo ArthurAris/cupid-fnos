@@ -1,0 +1,18 @@
+[Unit]
+Description=cupid verified data partition as local SCSI disk
+After=systemd-udev-settle.service sys-kernel-config.mount
+Wants=systemd-udev-settle.service
+RequiresMountsFor=/sys/kernel/config
+Before=trim_main.service extdev_service.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+UMask=0077
+ExecStart=/usr/bin/python3 -I /usr/local/lib/cupid/cupid-storage.py start
+ExecStop=/usr/bin/python3 -I /usr/local/lib/cupid/cupid-storage.py stop
+TimeoutStartSec=45
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

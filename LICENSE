@@ -1,0 +1,9 @@
+This source-only project uses GPL-2.0-only for original code and Linux-derived code, CC-BY-4.0 for original documentation, and the original third-party licenses where specified.
+
+Full terms:
+- LICENSES/GPL-2.0-only.txt
+- LICENSES/CC-BY-4.0.txt
+- LICENSES/Apache-2.0.txt
+- LICENSES/Linux-syscall-note.txt
+
+See NOTICE.md for scope and attribution. No license is granted here to firmware, fnOS user-space binaries, ROMs, calibration data or other excluded materials.

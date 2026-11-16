@@ -1,0 +1,33 @@
+{
+  "headers": {
+    "Module.symvers": "121ac1b2269aa229ec044ff7bc3211ee3a7eea74829f89979603240299ab31a6",
+    "include/generated/autoconf.h": "ee5325dc7b38620525d4b4c04b71b1bf343ec475e8cd60e6cbbbb9ac44f86053",
+    "include/generated/utsrelease.h": "06c100040b23a1d647f893d2d454941a68d43a56be1553c1d017f9031eba286a",
+    "include/linux/auxiliary_bus.h": "343e9ec090b44be6fd269f28a4e0227afdaa750247745dff0b3be994aef64606",
+    "include/linux/remoteproc.h": "94aa22a95d674608d05925897d03ff1a6abebea5df24f44c34b3973ae89cc79e"
+  },
+  "upstream": {
+    "drivers/hwspinlock/hwspinlock_core.c": "cc12b787cd313af37bbd8bc2af66e17e3c553cab8ba3feff32d7ea549d4afcb8",
+    "drivers/hwspinlock/hwspinlock_internal.h": "157483223509e7a0ea32501fa4a0804ebebfdbc08cbf074d4960b18a2bf3bedd",
+    "drivers/hwspinlock/qcom_hwspinlock.c": "61d38f7450c37497785625ea7dfc4dbe4001b6a044de0d0ec66ae4fa32da5801",
+    "drivers/soc/qcom/smem.c": "f3218c42f54746e59fc55658c33ef0a6a5a7c7ca80b423a1d35788c2332f24ab",
+    "drivers/soc/qcom/smem_state.c": "e0010dd0696f438fcc9ca0df1877cfdaa4d432641aa14db650742ba83f5d8dfb",
+    "drivers/soc/qcom/smp2p.c": "cd0bb984683bc6d48f54c3ef85b5b17d18ffbfe25bfadb7700fcd2bb21374585",
+    "drivers/soc/qcom/trace-smp2p.h": "59c5b9e6838e9d426557b38363008456c9ae70813ce21fd77c3e140051f4f45b",
+    "drivers/rpmsg/qcom_glink_smem.c": "ed1f6b0c4ce66a9161fe699fd446f60d8e9863dd4596ddf084cb9422a66b2acb",
+    "drivers/rpmsg/qcom_glink_native.h": "9f599891c3acb4f389d4775b9ca9aedac0d7a1fe8471178f692688c9337a075c",
+    "drivers/remoteproc/qcom_pil_info.c": "18fb7e5d8c1c0fed21b2a083aa63833f28de6bddb67ed334802b3dc46e82068a",
+    "drivers/remoteproc/qcom_pil_info.h": "c82c7fb7e81431919d95e8cc58f611e78dc16649e4294414d547616ee5f652ec",
+    "drivers/remoteproc/remoteproc_internal.h": "4a0644775ed41c1a3205405558359442aba3d30f65c26f9e156755edd7066817",
+    "drivers/soc/qcom/socinfo.c": "6e3189e0d8b804bc011d9d27ffe92201b566292b3ab2b30c79b2bf3541c73b30",
+    "net/qrtr/smd.c": "47e959455b8b988e30f41c8d91182b61dd31d2fdf46f39025e7a3bd297835219",
+    "net/qrtr/qrtr.h": "d2cd532bde3a6dcc6dc60e45247f76ca6e3ee2e0da435bb11c75daf8b482b6bd"
+  },
+  "pas": {
+    "drivers/remoteproc/qcom_common.c": "59691a7bb2f24c88fd499f230f8fed9ed6dfee653a50025646e706a06adcee73",
+    "drivers/remoteproc/qcom_common.h": "02601daee6453985b6d149a7787c7b0b66b02a423deeab8b62164322a6f5de1d",
+    "drivers/remoteproc/qcom_q6v5.c": "b18c9e6e9aa15cd0f64d02b7043ddf3581491fbd02db11180b2574e63e7dbb51",
+    "drivers/remoteproc/qcom_q6v5.h": "8f3b9bac8a53f686ce76993bc5b15dc1e5b6e6a5304530242e5c761bf9bf6be0",
+    "drivers/remoteproc/qcom_q6v5_pas.c": "3e86748e9429516b63b981bed69401e7297c66bda344cfe1e6f22c2290986b1e"
+  }
+}

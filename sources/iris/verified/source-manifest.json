@@ -1,0 +1,529 @@
+{
+  "schema": "iris-public-source-manifest-1",
+  "role": "verified",
+  "original_manifest_sha256": "7968aa4dadf3dbcce90b4b8f910b394473214c38cdf5b6e98681cca8f0fc532b",
+  "paths_relative_to": "sources/iris",
+  "files": [
+    {
+      "path": "verified/iris_buffer.c",
+      "sha256": "1c202fa6860589715f01884e00b9e323f410d782795b287c96d7bd1de0c80a46",
+      "originalactualsourcehash": "1c202fa6860589715f01884e00b9e323f410d782795b287c96d7bd1de0c80a46",
+      "bytes": 34904,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_buffer.h",
+      "sha256": "954abdb13954a186f0c490af6776bebc144475753847df66d0ca82407589a0eb",
+      "originalactualsourcehash": "954abdb13954a186f0c490af6776bebc144475753847df66d0ca82407589a0eb",
+      "bytes": 4901,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_common.c",
+      "sha256": "03df2b9ee77b7a3c34f308e52af79fbaf64a24d3f239bf46b1469834ed40c6d8",
+      "originalactualsourcehash": "03df2b9ee77b7a3c34f308e52af79fbaf64a24d3f239bf46b1469834ed40c6d8",
+      "bytes": 7325,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_common.h",
+      "sha256": "0db37b6644ddf652f9618f2402eccda47b05517c3f37ba588220edc43d727c27",
+      "originalactualsourcehash": "0db37b6644ddf652f9618f2402eccda47b05517c3f37ba588220edc43d727c27",
+      "bytes": 572,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_core.c",
+      "sha256": "edd9ca61910b59d5de189a49108631d7460b50330b1f43c2901b60b8a36abccc",
+      "originalactualsourcehash": "edd9ca61910b59d5de189a49108631d7460b50330b1f43c2901b60b8a36abccc",
+      "bytes": 24542,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_core.h",
+      "sha256": "a874609f3a65608fbe73d03d7bf5d34a317856948ecad4bc71c87f63e630c5d4",
+      "originalactualsourcehash": "7ff06926f926a70f924ec60a4b656d6343e944b7abd7fcf4177376f75f96e10f",
+      "bytes": 18746,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "gate_default",
+          "macro": "IRIS_RELEASE_OBSERVER_ENABLED",
+          "from": "1",
+          "to": "0"
+        },
+        {
+          "kind": "gate_default",
+          "macro": "IRIS_STOP_OBSERVER_ENABLED",
+          "from": "1",
+          "to": "0"
+        },
+        {
+          "kind": "public_fixed_selector",
+          "macro": "IRIS_RELEASE_OBSERVER_TOKEN"
+        },
+        {
+          "kind": "public_fixed_selector",
+          "macro": "IRIS_STOP_OBSERVER_TOKEN"
+        }
+      ]
+    },
+    {
+      "path": "verified/iris_ctrls.c",
+      "sha256": "a584e6e1f1d75945ee228058ed8e7dcff4af69e8b208678d01c866c4b0e23d8b",
+      "originalactualsourcehash": "a584e6e1f1d75945ee228058ed8e7dcff4af69e8b208678d01c866c4b0e23d8b",
+      "bytes": 28408,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_ctrls.h",
+      "sha256": "c4100a9878baabb33b759389dfe64bc4ee76f1cd05c174b83e2f6e3f57e703fd",
+      "originalactualsourcehash": "c4100a9878baabb33b759389dfe64bc4ee76f1cd05c174b83e2f6e3f57e703fd",
+      "bytes": 2101,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_firmware.c",
+      "sha256": "f5e1e9f66fc435a3894e106a279ce3af97677ea71405dbcf0fa8ff41ca085e87",
+      "originalactualsourcehash": "f5e1e9f66fc435a3894e106a279ce3af97677ea71405dbcf0fa8ff41ca085e87",
+      "bytes": 3569,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_firmware.h",
+      "sha256": "31779b314ec33390903dddf3c268dba749d3a6b964556edb5b7b4549a5d1f00f",
+      "originalactualsourcehash": "31779b314ec33390903dddf3c268dba749d3a6b964556edb5b7b4549a5d1f00f",
+      "bytes": 363,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_common.c",
+      "sha256": "5129de74c39ace73cc524cb3d5c09880f790670809dc29e49960ff27dc748027",
+      "originalactualsourcehash": "5129de74c39ace73cc524cb3d5c09880f790670809dc29e49960ff27dc748027",
+      "bytes": 11409,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_common.h",
+      "sha256": "e975163173063cc8fb00b699a1411e12eba2065335c534ef725fbd3d9b60307d",
+      "originalactualsourcehash": "e975163173063cc8fb00b699a1411e12eba2065335c534ef725fbd3d9b60307d",
+      "bytes": 6651,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen1.h",
+      "sha256": "77983693519f3749dcaabccbf159066dc30a73c426c9758ec67323c2484ea86c",
+      "originalactualsourcehash": "77983693519f3749dcaabccbf159066dc30a73c426c9758ec67323c2484ea86c",
+      "bytes": 410,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen1_command.c",
+      "sha256": "05376e91a2c20260202406418689a28d9f1a4cf87a46e57cf23749ac7882eb38",
+      "originalactualsourcehash": "05376e91a2c20260202406418689a28d9f1a4cf87a46e57cf23749ac7882eb38",
+      "bytes": 32659,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen1_defines.h",
+      "sha256": "15de9f09b511a52f03ae1d5bbfdf0700222af70077eabbe57969e1e0fbac83e5",
+      "originalactualsourcehash": "15de9f09b511a52f03ae1d5bbfdf0700222af70077eabbe57969e1e0fbac83e5",
+      "bytes": 12174,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen1_response.c",
+      "sha256": "a437b4edd8d76db3f8bd656592ab5a1b63c0fc59514be7118b87d98dd8697427",
+      "originalactualsourcehash": "a437b4edd8d76db3f8bd656592ab5a1b63c0fc59514be7118b87d98dd8697427",
+      "bytes": 20101,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2.h",
+      "sha256": "7db88f03d13dfd4175456d7fafe554278881b0e7042d23999abd06eaa859ba1b",
+      "originalactualsourcehash": "7db88f03d13dfd4175456d7fafe554278881b0e7042d23999abd06eaa859ba1b",
+      "bytes": 1565,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2_command.c",
+      "sha256": "49635ed80283d3e63bd48cc34722df76d2dd739a26b18493170c3594957d8f30",
+      "originalactualsourcehash": "49635ed80283d3e63bd48cc34722df76d2dd739a26b18493170c3594957d8f30",
+      "bytes": 52240,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2_defines.h",
+      "sha256": "b670a7da2be82d0e3324828d551a4e2cc156c121ea6afe52b4055f802f64bf84",
+      "originalactualsourcehash": "b670a7da2be82d0e3324828d551a4e2cc156c121ea6afe52b4055f802f64bf84",
+      "bytes": 6307,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2_packet.c",
+      "sha256": "1d7ec44adff33a94932b3f8f471c5975bd1d435533ac9c806b8f3dcc21af705f",
+      "originalactualsourcehash": "1d7ec44adff33a94932b3f8f471c5975bd1d435533ac9c806b8f3dcc21af705f",
+      "bytes": 8281,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2_packet.h",
+      "sha256": "94f7e501fe670911a8d6f73f4102dad5c6910aa540ea7ac2548dfe8402f3d4c0",
+      "originalactualsourcehash": "94f7e501fe670911a8d6f73f4102dad5c6910aa540ea7ac2548dfe8402f3d4c0",
+      "bytes": 4778,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_gen2_response.c",
+      "sha256": "b983e3b3553271198ffe391f9575c13a45e15e013a59afbbe952d5a43e138aef",
+      "originalactualsourcehash": "b983e3b3553271198ffe391f9575c13a45e15e013a59afbbe952d5a43e138aef",
+      "bytes": 60871,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_queue.c",
+      "sha256": "4e6d5c5d641c53459393a1953319a74b747ef146f9065a9410eec9768f71359e",
+      "originalactualsourcehash": "4e6d5c5d641c53459393a1953319a74b747ef146f9065a9410eec9768f71359e",
+      "bytes": 10374,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_hfi_queue.h",
+      "sha256": "39a6d56005b7ba7d2839ad7fb6058ec4f068c8464f73b9cc09d875742c4cf271",
+      "originalactualsourcehash": "39a6d56005b7ba7d2839ad7fb6058ec4f068c8464f73b9cc09d875742c4cf271",
+      "bytes": 6596,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_instance.h",
+      "sha256": "ce7a77c76e6ef21e998a1ab2254da3d04b527292d2962c5237ef2eaf44ec87df",
+      "originalactualsourcehash": "ce7a77c76e6ef21e998a1ab2254da3d04b527292d2962c5237ef2eaf44ec87df",
+      "bytes": 4623,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_common.h",
+      "sha256": "d8df4d8a4f09a28bf012fe2e25960226f73c1299e8c056c78a75b9ac5a645e99",
+      "originalactualsourcehash": "d8df4d8a4f09a28bf012fe2e25960226f73c1299e8c056c78a75b9ac5a645e99",
+      "bytes": 6427,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_gen2.c",
+      "sha256": "a6b19aeb587085dbf62381dd6a75449c3c4367b3c502818acfb3ad5c477a1745",
+      "originalactualsourcehash": "a6b19aeb587085dbf62381dd6a75449c3c4367b3c502818acfb3ad5c477a1745",
+      "bytes": 40241,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_qcs8300.h",
+      "sha256": "933d71df3659949b63e4f35227a29dc40c66bea8dc1ef67f1cbc9f14f25630f7",
+      "originalactualsourcehash": "933d71df3659949b63e4f35227a29dc40c66bea8dc1ef67f1cbc9f14f25630f7",
+      "bytes": 15228,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_sm8250.c",
+      "sha256": "4be8643e29f3611c71ff058d22d285dbb763c88d7499328badb1c4ddd43ac958",
+      "originalactualsourcehash": "4be8643e29f3611c71ff058d22d285dbb763c88d7499328badb1c4ddd43ac958",
+      "bytes": 11586,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_sm8650.h",
+      "sha256": "a0b1eac96aa9bebe99deef54a4e8a2b2f6fea1ce7011778bebe8a179f58b92d9",
+      "originalactualsourcehash": "a0b1eac96aa9bebe99deef54a4e8a2b2f6fea1ce7011778bebe8a179f58b92d9",
+      "bytes": 355,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_platform_sm8750.h",
+      "sha256": "a11b86a167706c276c50b06eee699989009851bcc92993b19dd4bcf249cdc93a",
+      "originalactualsourcehash": "a11b86a167706c276c50b06eee699989009851bcc92993b19dd4bcf249cdc93a",
+      "bytes": 558,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_power.c",
+      "sha256": "cdd0ebb66584a4e5a213acad65d0eea6a041d80e16c913361607cdb067ea2f92",
+      "originalactualsourcehash": "cdd0ebb66584a4e5a213acad65d0eea6a041d80e16c913361607cdb067ea2f92",
+      "bytes": 4900,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_power.h",
+      "sha256": "ef223b142fd4260490a99d8aa035e0ac321cb3015ffad7dda78092821ac721c6",
+      "originalactualsourcehash": "ef223b142fd4260490a99d8aa035e0ac321cb3015ffad7dda78092821ac721c6",
+      "bytes": 257,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_probe.c",
+      "sha256": "2e4e49851de57dfcd01253dd32207f70588e1cc59e0a3203d96bc20d3b502a0e",
+      "originalactualsourcehash": "23da43c6621a8a7baef8ca35da754a399fc7a7fd430fc8e24fc4077905b59902",
+      "bytes": 56009,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "gate_default",
+          "macro": "IRIS_INIT_ONLY_EXECUTION_ENABLED",
+          "from": "1",
+          "to": "0"
+        },
+        {
+          "kind": "gate_default",
+          "macro": "IRIS_INIT_ONLY_PROVIDER_ADMISSION_ENABLED",
+          "from": "1",
+          "to": "0"
+        },
+        {
+          "kind": "gate_default",
+          "macro": "IRIS_DECODE_ONCE_ENABLED",
+          "from": "1",
+          "to": "0"
+        }
+      ]
+    },
+    {
+      "path": "verified/iris_resources.c",
+      "sha256": "c83f183de6aacd5a58579b9190121402e3b0b4f4d818297b832334f603321a84",
+      "originalactualsourcehash": "c83f183de6aacd5a58579b9190121402e3b0b4f4d818297b832334f603321a84",
+      "bytes": 8589,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_resources.h",
+      "sha256": "f2ef4d56873bf989f80a29d05deb9c3dbcb971eb4e70d3b883ae6bb582d6b917",
+      "originalactualsourcehash": "f2ef4d56873bf989f80a29d05deb9c3dbcb971eb4e70d3b883ae6bb582d6b917",
+      "bytes": 841,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_state.c",
+      "sha256": "c0640708b1f90eeebc14e01a8ae659a86fd6a7f79906b8e6f0520faf96758377",
+      "originalactualsourcehash": "c0640708b1f90eeebc14e01a8ae659a86fd6a7f79906b8e6f0520faf96758377",
+      "bytes": 7542,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_state.h",
+      "sha256": "b3d02c627ceee158882d1faaa410b4185a4a89521ffbfcd56f187e8740a341e6",
+      "originalactualsourcehash": "b3d02c627ceee158882d1faaa410b4185a4a89521ffbfcd56f187e8740a341e6",
+      "bytes": 5292,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_utils.c",
+      "sha256": "f00cbff180a78e0753532a6b84960052ef5a13f2e71a551e767b961a2ccab519",
+      "originalactualsourcehash": "f00cbff180a78e0753532a6b84960052ef5a13f2e71a551e767b961a2ccab519",
+      "bytes": 4944,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_utils.h",
+      "sha256": "e1783f9758e24c7882e7389d9f8e90a83604d437650766fd0f7e37be5f46ccdc",
+      "originalactualsourcehash": "e1783f9758e24c7882e7389d9f8e90a83604d437650766fd0f7e37be5f46ccdc",
+      "bytes": 1550,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vb2.c",
+      "sha256": "a4164f40aaf9a59cec7a9f99fcfe23c0a388e148940b85e07c6cf1473d41cbd7",
+      "originalactualsourcehash": "a4164f40aaf9a59cec7a9f99fcfe23c0a388e148940b85e07c6cf1473d41cbd7",
+      "bytes": 12190,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vb2.h",
+      "sha256": "f50ca9a6feef8d44efe1bc315da1445ce82dee1d0daca9d808fb9c2daf2ddf54",
+      "originalactualsourcehash": "f50ca9a6feef8d44efe1bc315da1445ce82dee1d0daca9d808fb9c2daf2ddf54",
+      "bytes": 668,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vdec.c",
+      "sha256": "1fa3ede5920af24fc05b51a492e9ff9ec8a98fb374691331d073a2f69f711aeb",
+      "originalactualsourcehash": "1fa3ede5920af24fc05b51a492e9ff9ec8a98fb374691331d073a2f69f711aeb",
+      "bytes": 15601,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vdec.h",
+      "sha256": "cdf303a50e475188f151b8426a580ffdef3dbfce2ded06ebca54d24e4db8e430",
+      "originalactualsourcehash": "cdf303a50e475188f151b8426a580ffdef3dbfce2ded06ebca54d24e4db8e430",
+      "bytes": 1021,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_venc.c",
+      "sha256": "5e5d726ed3f1ec145c7c3d1c5769340e05449feb25c2c3cbcefab8569ebd0d69",
+      "originalactualsourcehash": "5e5d726ed3f1ec145c7c3d1c5769340e05449feb25c2c3cbcefab8569ebd0d69",
+      "bytes": 15872,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_venc.h",
+      "sha256": "bd7515d05ea1ee68c4abf1a25120520d1c6119662707e63749df464160bea833",
+      "originalactualsourcehash": "bd7515d05ea1ee68c4abf1a25120520d1c6119662707e63749df464160bea833",
+      "bytes": 1201,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vidc.c",
+      "sha256": "642dacb15b738d620648d6ac48578ae5abf387e3f406a0ec46bc51372f4468bc",
+      "originalactualsourcehash": "642dacb15b738d620648d6ac48578ae5abf387e3f406a0ec46bc51372f4468bc",
+      "bytes": 37818,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vidc.h",
+      "sha256": "3b3e11c7eed62f4f8a54fd7c4c4acdd67133d82688c0584fd195e76bb6a9a7c1",
+      "originalactualsourcehash": "3b3e11c7eed62f4f8a54fd7c4c4acdd67133d82688c0584fd195e76bb6a9a7c1",
+      "bytes": 381,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu2.c",
+      "sha256": "9b3c91bcdaf5e81a9229aa2eb5aa4360ebeeeaa6de25ffbd8eb695846bd8f318",
+      "originalactualsourcehash": "9b3c91bcdaf5e81a9229aa2eb5aa4360ebeeeaa6de25ffbd8eb695846bd8f318",
+      "bytes": 1323,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu3x.c",
+      "sha256": "5af26cf987d8d4e003cf8921878d2113556582e2ba597be7680213b7024fff66",
+      "originalactualsourcehash": "5af26cf987d8d4e003cf8921878d2113556582e2ba597be7680213b7024fff66",
+      "bytes": 14787,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu_buffer.c",
+      "sha256": "73cfcc60c1d583d78b20c71a9e2a47bd3d2247337c22ea8493c04d352c9efb7b",
+      "originalactualsourcehash": "73cfcc60c1d583d78b20c71a9e2a47bd3d2247337c22ea8493c04d352c9efb7b",
+      "bytes": 53209,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu_buffer.h",
+      "sha256": "5c638d44e1fe3dadf2a2376ae5dc003f120c2f3d66a51da37e6170a54771e4d7",
+      "originalactualsourcehash": "5c638d44e1fe3dadf2a2376ae5dc003f120c2f3d66a51da37e6170a54771e4d7",
+      "bytes": 4924,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu_common.c",
+      "sha256": "c5e3d27957f6a8e4711e5d80098b629212eadfdd32e094b58f6d4f8995a770db",
+      "originalactualsourcehash": "c5e3d27957f6a8e4711e5d80098b629212eadfdd32e094b58f6d4f8995a770db",
+      "bytes": 20094,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu_common.h",
+      "sha256": "969a30858144d528fbcb13c6ef7320fc648b36b2058b3fd14d42a37fbab71490",
+      "originalactualsourcehash": "969a30858144d528fbcb13c6ef7320fc648b36b2058b3fd14d42a37fbab71490",
+      "bytes": 1708,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/iris_vpu_register_defines.h",
+      "sha256": "0bdb029ef51fa1f5ad96e2b29c73fd81319fd3e74f7d29a65a5316e579090d48",
+      "originalactualsourcehash": "0bdb029ef51fa1f5ad96e2b29c73fd81319fd3e74f7d29a65a5316e579090d48",
+      "bytes": 442,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "verified/Kconfig",
+      "sha256": "ee9eb0c088ffd1203ff31ece8da9294bb3f4aa4d54d22f8fd095eca6e0554710",
+      "originalactualsourcehash": "8e194306206d2c8bf6e99b142892e94a49401f4b9f05263fdef5b1dfe803b2b6",
+      "bytes": 558,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "buildfile_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "verified/Makefile",
+      "sha256": "4f41ef9760d8c5043768c4d40baeaedffede5686a06059662388719e2f917950",
+      "originalactualsourcehash": "8acbbf02fd25d8e55a8d6103fc9d35a8e86334b187be5fd01130ef98418c0fe7",
+      "bytes": 556,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "buildfile_spdx",
+          "copyright_added": false
+        }
+      ]
+    }
+  ],
+  "origin": {
+    "kernel_version_reference": "6.18.18",
+    "upstream_tree_path": "drivers/media/platform/qcom/iris",
+    "upstream_repository_reference": "https://github.com/gregkh/linux",
+    "upstream_tag_reference": "v6.18.18",
+    "upstream_commit": null,
+    "reference_inventory_sha256": "38b5818de858f2d71e6038def15cdef3e0ec842b6289f96d52e1e5e9fb85a4d0",
+    "authentication_gap": "Existing sources.json version/path/hashes; Git not inspected; commit and exact fnOS source/patch/config pairing unestablished.",
+    "repository_reference_basis": "Existing public USB provider source-review documentation; reference only, not Iris file authentication."
+  },
+  "compile_governance_unchanged": true,
+  "production_admitted": false,
+  "published_gated_rebuild_device_verified": false,
+  "default_execution_gates": 0,
+  "evidence_scope": "original fixed three-frame and STOP evidence only; not this gated rebuild"
+}

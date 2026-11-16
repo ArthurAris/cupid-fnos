@@ -1,0 +1,380 @@
+{
+  "schema": "iris-public-role-source-manifest-1",
+  "role": "pid1",
+  "paths_relative_to": "sources/iris",
+  "files": [
+    {
+      "path": "pid1/coordinator.c",
+      "sha256": "bd0895607d0ad93fde1d3e2873537fb2268ef247432316efb1941e7789d00e00",
+      "originalactualsourcehash": "bd0895607d0ad93fde1d3e2873537fb2268ef247432316efb1941e7789d00e00",
+      "bytes": 13709,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/coordinator.h",
+      "sha256": "1079f14c632b1fae3193d92ce8e7f75f026f11e7131874fd43426439a51518dc",
+      "originalactualsourcehash": "1079f14c632b1fae3193d92ce8e7f75f026f11e7131874fd43426439a51518dc",
+      "bytes": 4751,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/decode-owner.c",
+      "sha256": "3acbef5ef29cc931d1427dfb2eba980d1d4744be921a0d8ecb9fded0d8242b00",
+      "originalactualsourcehash": "a350c7233e15f6c7441b2f756e245509872d30199772aee20e8451031e3394fc",
+      "bytes": 11445,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-owner.h",
+      "sha256": "a5a12cef5c6c8b9b2a7e58c5d8c39afe39ec72a0ed44a207eb7c77d37df8134c",
+      "originalactualsourcehash": "bd8f17ea188cc4e454bfee94930f09856c15c714ab32c19a28a2768c1a7c2aff",
+      "bytes": 3112,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-pipeline.c",
+      "sha256": "30da927073ea96607e853f0348c7756fd55bd4a43c3c6369625c1ee7494833d8",
+      "originalactualsourcehash": "78644d4fbc370c1377d3549dbcc210cbc0b74d5ce1ca7e4217770e2632ae9b45",
+      "bytes": 4272,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-pipeline.h",
+      "sha256": "2b99e9e712070390b4e2e2ee0781e2c0fc68870e11d33641f1de613e9f20d8be",
+      "originalactualsourcehash": "9fccee7a2f734925e1e2d2b6ca3f2b58d161460d5a53fdbcfbc492271ba12ce4",
+      "bytes": 1190,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-ready.c",
+      "sha256": "9f51cbdb543875f74a7fb0ea1b437a7227b7f1281f8618957d4d15ac8a8c87e3",
+      "originalactualsourcehash": "fa5d4932433a254ef34365f1c4925ef8bbfac54ea319c73cf968fa580dfcf75e",
+      "bytes": 2967,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-work.c",
+      "sha256": "3725caeb0420c42c9a132162dce53aef8c3cee973841f8ee9868b59f6fe6447a",
+      "originalactualsourcehash": "c9957a124deaad219b6892b33c6e4dcf54c86ffe93caa01a2c6459d5448b2a6f",
+      "bytes": 14494,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "release_sha_helper_header_include"
+        }
+      ]
+    },
+    {
+      "path": "pid1/decode-work.h",
+      "sha256": "43fa4b5f5d62b80efc83b4bcdb3119e8b3b547ade3f69c7d3c75ec81388674f4",
+      "originalactualsourcehash": "c3096896b4b7b7dd88909a1a5ace67c2fdde3e5b54414af30ed31c990a029f63",
+      "bytes": 3341,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/fd-handoff.c",
+      "sha256": "584c1b207fb807373d7b9a4aaaeff7e60920ef90ca8321a5ee269ca9113926a0",
+      "originalactualsourcehash": "ceea88dd9021ae9e499d5647263baf7fef9865fd8752ddfb820677769b0851cb",
+      "bytes": 8989,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/fd-handoff.h",
+      "sha256": "dd9491ea1686aa4b07aa7f4f90090858b5b9a20acf1f26702b5bff2e19f40681",
+      "originalactualsourcehash": "1af988245cdacf007d513dc5961a1f0abfcc4dcb2fcf37243676e3aeb8014784",
+      "bytes": 1579,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/fixed-decode-diagnostic.c",
+      "sha256": "073a0abcb813acc230fb50da404330def8b78dc7900d190d6a2fce2dfbc5d4cd",
+      "originalactualsourcehash": "fbab7ecd0ff89db5bc112f78f6b173fe1d93cffc8acf085d82886c131ed40fcf",
+      "bytes": 10218,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "release_sha_helper_header_include"
+        }
+      ]
+    },
+    {
+      "path": "pid1/fixed-decode-diagnostic.h",
+      "sha256": "73fc0a6c306cce99d8843d39f3861fbe25312f52e0d0eb65d8b7333dc1ac831b",
+      "originalactualsourcehash": "d919de04d282d6ecadd09bfb05c2e3399140eefa2f30617957d0131f0855e57f",
+      "bytes": 1101,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/fixed-decode-evidence.c",
+      "sha256": "216f7d1983471b0cb4ff6e5999293094cce078a5d907e0bc47beeea2f273dc0c",
+      "originalactualsourcehash": "91a19f04c360558d450af297a5a4dc52cf90201d00da403ba5a7264627c2dcc4",
+      "bytes": 6358,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "release_sha_helper_header_include"
+        }
+      ]
+    },
+    {
+      "path": "pid1/fixed-decode-evidence.h",
+      "sha256": "4ed15eb329d871fa007dcc4ec0ebafbdca1bc7666a7c143deedc5368009ed60e",
+      "originalactualsourcehash": "7db105271128fdf6fd44b1d36f3fda2dc7538ecc5c7131ba110efc6cb40654b3",
+      "bytes": 1609,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/gadget-worker.c",
+      "sha256": "8b7adfb470f015b152f8a58ebe20710822711b59221a32feb719d83db021938b",
+      "originalactualsourcehash": "8b7adfb470f015b152f8a58ebe20710822711b59221a32feb719d83db021938b",
+      "bytes": 7060,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/gadget-worker.h",
+      "sha256": "a743d92b86bb28e77798f5c5da20d0886ecf45027fb9457ef9cea1576bb3dfef",
+      "originalactualsourcehash": "a743d92b86bb28e77798f5c5da20d0886ecf45027fb9457ef9cea1576bb3dfef",
+      "bytes": 541,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/module-supervisor.c",
+      "sha256": "0f9916a3434b4319d2ca06c70319467b91dec6bce3860648f4f455ae18b25e3a",
+      "originalactualsourcehash": "367f82eaccf6d387902b034935fd36dd1d022d01f1b4b4a7ca4237d81fce6e6a",
+      "bytes": 9535,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/module-supervisor.h",
+      "sha256": "0a244180122e53fbb4179cc169c0ce23f6154bfa44549fda026b086ca0209718",
+      "originalactualsourcehash": "3a56e638f96e61011050cb6fa555cdeeb9e7ae54b09f20375d35d66cee1d6593",
+      "bytes": 1993,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/serial-protocol.c",
+      "sha256": "d450a7956396d1af7178d3ea33871cb9f306007c7f1247233a212a0f5ae2763b",
+      "originalactualsourcehash": "7d2d56ae71b5cc12126d4ffd68ba30675a876d378ec9fa5e89ab7f36c7e9809e",
+      "bytes": 10567,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/serial-protocol.h",
+      "sha256": "005c5be3e807aeb25aa9930d459eca5de5880f48f940800cb8163d95e81a8a04",
+      "originalactualsourcehash": "8690dcb87c8929c2aca7cf15eb6b5d1b0ce7da0ee3a6c2e47a7fc7f639bf9fb8",
+      "bytes": 2684,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/transport-state.h",
+      "sha256": "71c01651c8609d9b9f9c17f1d41de2869ac3d9eb2f0c575dbd273a2dd7f65c51",
+      "originalactualsourcehash": "71c01651c8609d9b9f9c17f1d41de2869ac3d9eb2f0c575dbd273a2dd7f65c51",
+      "bytes": 3189,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/tty-worker.c",
+      "sha256": "7d00f1ae5f7a7a7157a81778e9ad0308af9f41ecfc4a0c89bb3002388f7941bc",
+      "originalactualsourcehash": "82e7ae00f63b57633cfe1569b65e575581b3d2aea0c05104ddc377099a754fe5",
+      "bytes": 15999,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/tty-worker.h",
+      "sha256": "0aa2a462f08d0d257be9693d14a7354da34bf21dcec22848da3af281a87d6732",
+      "originalactualsourcehash": "6815ec007b13afbc21763fdc16fbdeac1adb99a49f968c3cceea45bfe2ddc899",
+      "bytes": 3869,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        }
+      ]
+    },
+    {
+      "path": "pid1/usb-init.c",
+      "sha256": "2c482d4313a6ae14f64876d34ea9a066241722911aa80369f03bf81185cce185",
+      "originalactualsourcehash": "2c482d4313a6ae14f64876d34ea9a066241722911aa80369f03bf81185cce185",
+      "bytes": 15762,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/video-phase.h",
+      "sha256": "5a271559c0c6d3930c1db35442f59059d696538dcbb7c35209fd36cf63cde7c7",
+      "originalactualsourcehash": "5a271559c0c6d3930c1db35442f59059d696538dcbb7c35209fd36cf63cde7c7",
+      "bytes": 2173,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/video-report-v2.h",
+      "sha256": "4e42f769a2a19c67fdbc07283115cc46a9889d3659f54bda08e9997779de427d",
+      "originalactualsourcehash": "4e42f769a2a19c67fdbc07283115cc46a9889d3659f54bda08e9997779de427d",
+      "bytes": 1269,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/video-report.h",
+      "sha256": "0b89b65dd707ca061195f68e0b091dd1d50fe99e52f152b9e419a8d4dd225bf3",
+      "originalactualsourcehash": "0b89b65dd707ca061195f68e0b091dd1d50fe99e52f152b9e419a8d4dd225bf3",
+      "bytes": 1120,
+      "license": "GPL-2.0-only",
+      "transformations": []
+    },
+    {
+      "path": "pid1/ram-environment.c",
+      "sha256": "d9dfd43a2441b3b9c752ce2706b7c8b5027862a3382b9ea10dbfb2c0122fe766",
+      "originalactualsourcehash": "d9dfd43a2441b3b9c752ce2706b7c8b5027862a3382b9ea10dbfb2c0122fe766",
+      "bytes": 4122,
+      "license": "GPL-2.0-only",
+      "transformations": [],
+      "scope": "generic fixed RAM guard, no unique data; never executed"
+    },
+    {
+      "path": "pid1/ram-environment.h",
+      "sha256": "81cbc8e3e9e5a30409070b29d53151a89369c45245194fb1465f575f96cc0934",
+      "originalactualsourcehash": "81cbc8e3e9e5a30409070b29d53151a89369c45245194fb1465f575f96cc0934",
+      "bytes": 486,
+      "license": "GPL-2.0-only",
+      "transformations": [],
+      "scope": "generic fixed RAM guard, no unique data; never executed"
+    },
+    {
+      "path": "pid1/supervisor-sha256.h",
+      "sha256": "e480a4153f26d08db6aeff2bcedce980fdb6cfa4e35d55eeb23d200fb1fc694c",
+      "originalactualsourcehash": "8a258457b0028d8e7822f4acf606c80451e01e12f6416d4f542608bb2362fe1f",
+      "bytes": 2374,
+      "license": "GPL-2.0-only",
+      "transformations": [
+        {
+          "kind": "approved_original_project_spdx",
+          "copyright_added": false
+        },
+        {
+          "kind": "C_source_helper_header_rename"
+        }
+      ]
+    }
+  ],
+  "production_admitted": false,
+  "full_reproducibility_claimed": false,
+  "omitted_dependencies": [
+    "module-records.h",
+    "decode-assets.h",
+    "decode-bindings.h",
+    "runner-record.h (externally generated binding/pin headers)",
+    "external kernel/modules/firmware and fixture assets"
+  ],
+  "license_gap": null,
+  "license_basis": "User approved original project code GPL-2.0-only; existing notices take priority."
+}

@@ -1,0 +1,56 @@
+diff --git a/drivers/md/md-llbitmap.c b/drivers/md/md-llbitmap.c
+index e0bc6c8c9..922b2d663 100644
+--- a/drivers/md/md-llbitmap.c
++++ b/drivers/md/md-llbitmap.c
+@@ -430,13 +430,17 @@ static enum llbitmap_state llbitmap_read(struct llbitmap *llbitmap, loff_t pos)
+ /* set all the bits in the subpage as dirty */
+ static void llbitmap_infect_dirty_bits(struct llbitmap *llbitmap,
+ 				       struct llbitmap_page_ctl *pctl,
+-				       unsigned int block)
++				       int idx, unsigned int block)
+ {
+ 	bool level_456 = raid_is_456(llbitmap->mddev);
+ 	unsigned int io_size = llbitmap->io_size;
++	unsigned int first = block * io_size;
+ 	int pos;
+ 
+-	for (pos = block * io_size; pos < (block + 1) * io_size; pos++) {
++	/* The first I/O block may include the bitmap superblock. */
++	if (!idx)
++		first = max_t(unsigned int, first, BITMAP_DATA_OFFSET);
++	for (pos = first; pos < (block + 1) * io_size; pos++) {
+ 		switch (pctl->state[pos]) {
+ 		case BitUnwritten:
+ 			pctl->state[pos] = level_456 ? BitNeedSync : BitDirty;
+@@ -455,8 +459,11 @@ static void llbitmap_set_page_dirty(struct llbitmap *llbitmap, int idx,
+ 	struct llbitmap_page_ctl *pctl = llbitmap->pctl[idx];
+ 	unsigned int io_size = llbitmap->io_size;
+ 	int block = offset / io_size;
++	unsigned int first = block * io_size;
+ 	int pos;
+ 
++	if (!idx)
++		first = max_t(unsigned int, first, BITMAP_DATA_OFFSET);
+ 	if (!test_bit(LLPageDirty, &pctl->flags))
+ 		set_bit(LLPageDirty, &pctl->flags);
+ 
+@@ -478,16 +485,16 @@ static void llbitmap_set_page_dirty(struct llbitmap *llbitmap, int idx,
+ 	 * all bits in the sector will be collectively marked as dirty at once.
+ 	 */
+ 	if (test_and_set_bit(block, pctl->dirty)) {
+-		llbitmap_infect_dirty_bits(llbitmap, pctl, block);
++		llbitmap_infect_dirty_bits(llbitmap, pctl, idx, block);
+ 		return;
+ 	}
+ 
+-	for (pos = block * io_size; pos < (block + 1) * io_size; pos++) {
++	for (pos = first; pos < (block + 1) * io_size; pos++) {
+ 		if (pos == offset)
+ 			continue;
+ 		if (pctl->state[pos] == BitDirty ||
+ 		    pctl->state[pos] == BitNeedSync) {
+-			llbitmap_infect_dirty_bits(llbitmap, pctl, block);
++			llbitmap_infect_dirty_bits(llbitmap, pctl, idx, block);
+ 			return;
+ 		}
+ 	}
