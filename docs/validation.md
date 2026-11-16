@@ -20,6 +20,16 @@
 
 部署测试使用新建ext4隔离fixture/fake-root，实际检查openat、原子replace、fsync、flock和失败恢复；synthetic固件/receipt/ELF不是实际设备材料。没有执行生产服务、loop-device runtime smoke、手机命令或完整系统构建。
 
+## PERSIST 生命周期修复的真机复现
+
+两次独立 RAM 启动（同一候选结构）均取得 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，双 STOP ACK 匹配（98/105、99/106），三帧 PTS 1.0/1.04/1.08 秒各 24,576 字节，独立 FDE 验证两次通过；捕获 SHA256 `b29e408d…`（101,898 字节）与 `aa596c4f…`（101,803 字节）。
+
+FDE 验证器后继只放宽一处：回执 `flags` bit 5 仅对 PERSIST 允许，且必须与 `stage==5` 一致；其余掩码、extent、身份、顺序、生命周期绑定、帧/oracle 校验与全部 proof 标志保持原样。独立结构验证器的函数 pin 变更逐条记录在私有审计中，验证逻辑未放宽。
+
+该结果是 PERSIST 关闭退休的单变量条件验收，不是安全回收、DMA 停止、close/reopen 或原生影视验收；`hardware_decode_verified`、`frame_acceptance_verified` 在准入清单与镜像清单中仍为 false。
+
+串口恢复入口五版迭代均未在真机成功，当前版本编译通过但未上机；该入口即使工作也只能重启到正常启动目标，不能进 fastboot。
+
 ## Iris源码路径
 
 响应、wrapper和cold-power三个实际函数提取测试分别普通O2与ASan/UBSan执行，六次通过。各函数hash及生成C关联见 `tests/iris/test-results.json`。

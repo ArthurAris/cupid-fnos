@@ -36,8 +36,24 @@
 
 公开副本关闭执行门，是新的发布版本，不把原镜像hash当作这份副本已上机的证明。
 
+### PERSIST 生命周期修复（两次真机复现）
+
+冷初始化自锁修复后一次RAM实验首次越过此前的loader超时：客户端启动、解出三帧、双STOP ACK匹配（98/105、99/106），但quiesce在stage 2以`-110`超时。45条180B回执中APP INPUT 3/3、APP CAPTURE 16/16、BIN/COMV/NON_COMV/LINE各2、DPB 16全部归还，唯独PERSIST发出RELEASE请求后`returned=0`、`rx_generation=0`。
+
+根因：上游`dec_ip_int_buf_tbl`不含PERSIST，它只在close时force销毁；本方案却单独发HFI RELEASE，固件不会回该回包，1秒硬件响应超时后判定失败。这是设计错误，不是硬件故障。
+
+单变量修复把PERSIST移出release列表，改由校验通过的CLOSE ACK retire，回执`flags`bit 5记录该状态；物理存储全部保留，reclaim门仍为0。两次独立RAM观测均取得`control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，三帧PTS与oracle一致，独立FDE验证两次通过。
+
+**这是单变量生命周期修复的条件验收，不是安全回收、DMA停止、close/reopen或原生影视验收。** 详见[PERSIST生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
+
+### 串口恢复入口：未验证
+
+为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。发现的错误依次为`pause()`阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在observer子进程使用flow子进程设置的全局、把fd号写进共享内存（fd是进程局部的，跨进程无效）。当前版本改用已有的`SCM_RIGHTS`通道，编译通过但未上机。
+
+该入口即使工作也只能重启到正常启动目标，不能进fastboot：官方Image未编入`CONFIG_NVMEM_REBOOT_MODE`，且历史记录已证实`systemctl reboot --reboot-argument=bootloader`会回原系统。详见[恢复入口状态](fnos-recovery-entry-status-20261116.md)。
+
 ## 待完成
 
-PERSIST真实RELEASE归还、原始CLOSE ACK关联、CPU响应排空/实际安全回收、真实close/reopen、30轮会话、720p/1080p与至少600秒原生负载、seek/flush/DRC/错误取消、影视选择Iris且无CPU静默回退，以及持久部署/正常重启/回滚和系统回归。
+原始CLOSE ACK字段导出与关联、CPU响应排空的物理证明、实际安全回收、真实close/reopen、30轮会话、720p/1080p与至少600秒原生负载、seek/flush/DRC/错误取消、影视选择Iris且无CPU静默回退，以及持久部署/正常重启/回滚和系统回归。
 
 HEVC、硬件编码和NPU是独立能力，不在当前通过范围。

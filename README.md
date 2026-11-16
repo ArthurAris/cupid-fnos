@@ -11,7 +11,7 @@
 | 系统与存储 | 官方 `6.18.18.c1147-trim` 上运行 systemd、Btrfs、WebUI、Docker/SMB，并进行了正常重启验证 | 更新兼容性、完整安全停机和长期稳定性仍有限制 |
 | 网络 / GPU / 电池 | WiFi、Adreno 730计算与利用率/温度监控、ADSP电池及UPower/UPS显示有设备验证 | 显存统计、UPS保护阈值/低电量回归及部分电源管理未完成 |
 | Iris H264/NV12 | 隔离单会话固定三帧128×128 NV12，oracle/PTS一致；双端口STOP ACK匹配；INPUT 3/3、CAPTURE 19/19次提交报告归还 | 内部backing保留，不证明DMA停止或安全回收。CAPTURE为16个allocation |
-| 生命周期研究 | 逐allocation所有权、严格回包/取消入口守门、cold-init电源自锁修复，host测试和目标构建完成 | 最新修复未上机通过；PERSIST、close/reopen、重复和长视频未验收 |
+| 生命周期研究 | 逐allocation所有权、严格回包/取消入口守门、cold-init电源自锁修复；PERSIST改为CLOSE ACK退休，两次RAM实验`rc=0`/`stage=5`/`cpu_drained=1` | CLOSE ACK字段未导出；安全回收、close/reopen、重复和长视频未验收 |
 
 **fnOS自带FFmpeg与影视的原生H264解码 level5 尚未完成。** HEVC、硬件编码、NPU及全硬件转码也未验收。hash、计数、ACK和host测试不能替代物理DMA/真实原生任务证据。逐项适配细节与实测数据见 [`docs/features.md`](docs/features.md)。
 

@@ -24,7 +24,7 @@
 | ADSP | 10 个树外模块，PAS/GLINK/PDR/PDM 链 | ADSP running、IPCRTR 通信 | 实机验证；异常恢复有限 |
 | 电池/UPS | PDM mapper 名称修复 + battmgr 出数 | UPower 与 UPS 页显示真实容量/充电状态 | 实机验证；保护阈值/低电量关机未验收 |
 | 存储适配器 | LIO/IBLOCK 导出一块数据分区 | WSL 一次性镜像真实验证；手机曾导出 | 实验性；`trimacl` ABI 未解决 |
-| Iris 视频解码 | 隔离单会话 H264→NV12，STOP/所有权研究 | 固定三帧 + 双 STOP + 提交归还 | level 4 条件验收；level 5 未完成 |
+| Iris 视频解码 | 隔离单会话 H264→NV12，STOP/所有权研究 | 固定三帧 + 双 STOP + 提交归还 + PERSIST 关闭退休 | level 4 条件验收；PERSIST 修复两次真机复现；level 5 未完成 |
 | 显示（fnOS） | 未适配官方内核显示控制器/面板 | 无 | 未适配 |
 | 音频/蓝牙/GPS/摄像头 | 未适配 | 无 | 未适配 |
 | NPU/FastRPC | CDSP 固件与模块材料离线准备 | 未在 fnOS 实际调用 | 未适配 |
@@ -133,11 +133,24 @@
 - 180 字节逐对象回执，含内部 list ordinal、原 buffer index/retired、请求与实际回包身份/flags；原始 CLOSE ACK 尚未包含，因此完整 quiesce 仍不能判定。
 - 三处安全门修复：reclaim=0 时公开 STREAMOFF/REQBUFS(0) 与 stop 回调均在进入框架前拒绝；内部归还先核对 QUEUED/PENDING/READONLY/retired/原 validator 再改所有者；所有 native BUFFER 先严格校验完整 STRUCTURE 再读 wire type，畸形回包不进入旧释放路径。
 - 冷启动修复：发现 checked 电源入口在 cold INIT 持 core mutex 时再次获取同一锁，且 session-held helper 要求已有会话，与初始化无会话矛盾；单变量后继移除该 shortcut，恢复完整 checked provider 初始化。普通 O2/ASan/UBSan 与实际 core 调用者测试通过，GCC12 目标模块构建通过（179 imports/180 versions，完整 ABI 仍 unknown）。
-- **边界**：一次加固镜像 RAM 实验在 runner loader 阶段超时 `-110`，客户端未启动、无新帧/PERSIST 回包；冷启动修复镜像尚未上机。不能把该静态锁缺陷当已直接观测的设备根因，也不能以 host 测试冒充原生任务。
+- **边界**：一次加固镜像 RAM 实验在 runner loader 阶段超时 `-110`，客户端未启动、无新帧/PERSIST 回包。不能把该静态锁缺陷当已直接观测的设备根因，也不能以 host 测试冒充原生任务。
+
+### PERSIST 生命周期修复（条件验收，两次真机复现）
+
+冷启动修复后一次 RAM 实验首次越过 loader 超时：客户端启动、解出三帧、双 STOP ACK 匹配（98/105、99/106），但 quiesce 在 stage 2 以 `-110` 超时。45 条 180B 回执中除 PERSIST 外全部归还，PERSIST `flags=19`（valid+fw_owned+release_requested）、`returned=0`、`rx_generation=0`。
+
+- **根因**：上游 `dec_ip_int_buf_tbl` 不含 PERSIST，它只在 close 时 force 销毁；本方案却单独发 HFI RELEASE 并等待 RELEASE_DONE，固件不会回该回包，1 秒硬件响应超时后判定失败。这是设计错误，不是硬件故障。
+- **修复**：PERSIST 移出 release 列表，改由校验通过的 CLOSE ACK retire；`iris_repeat_persist_unclaimable()` 只在 unknown 或 release_requested 时拒绝声明；回执 `flags` bit 5 记录 `close_retired`。物理存储全部保留，`IRIS_NATIVE_REPEAT_RECLAIM_ENABLED` 仍为 0。
+- **两次独立真机结果**：均 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，双 STOP ACK 匹配，三帧 PTS 1.0/1.04/1.08s 各 24576B，独立 FDE 验证两次通过；捕获 `b29e408d…`（101898B）与 `aa596c4f…`（101803B）。PERSIST 回执变为 `flags=35`（含 close_retired）、`request_generation=0`。
+- **边界**：这是 PERSIST 关闭退休的单变量条件验收。CLOSE ACK 原始字段仍不在回执内，完整 quiesce 外部证明不成立；安全回收、全核心 DMA 停止、close/reopen、长负载与原生影视任务均未验收。详见[PERSIST 生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
+
+### 串口恢复入口（未验证）
+
+为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。错误依次为 `pause()` 阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在 observer 子进程使用 flow 子进程设置的全局、把 fd 号写进共享内存（fd 是进程局部的，跨进程无效）。当前版本改用已有的 `SCM_RIGHTS` 通道，编译通过但未上机。该入口即使工作也只能重启到正常启动目标，不能进 fastboot（官方 Image 未编入 `CONFIG_NVMEM_REBOOT_MODE`）。详见[恢复入口状态](fnos-recovery-entry-status-20261116.md)。
 
 ### 未完成
 
-PERSIST 真实 RELEASE 归还、原始 CLOSE ACK 关联、CPU 响应排空后实际 free、真实 close/reopen、30 轮会话、720p/1080p、至少 600 秒连续负载、seek/flush/DRC/错误取消、fnOS 自带 FFmpeg 与影视真实任务、无 CPU 静默回退证明、持久部署与重启回归。HEVC、硬件编码、NPU 独立且未验收。
+原始 CLOSE ACK 字段导出与关联、CPU 响应排空的物理证明、实际安全回收与 free、真实 close/reopen、30 轮会话、720p/1080p、至少 600 秒连续负载、seek/flush/DRC/错误取消、fnOS 自带 FFmpeg 与影视真实任务、无 CPU 静默回退证明、持久部署与重启回归。HEVC、硬件编码、NPU 独立且未验收。
 
 ## 7. 未适配/未完成功能
 
