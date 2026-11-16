@@ -10,12 +10,13 @@
 | `initramfs/init_static_fnos_v1.c` | 从 `userdata` 中挂载 `/host/fnos/root.img`、核对 fnOS 标记后交接 systemd 的历史 fnOS PID1 研究。**不是当前官方 c1147 完整启动流水线**，也没有随库构建脚本或可刷 initramfs。 |
 | `fnos/storage/`、`fnos/gpu-monitor/`、`fnos/adsp/` | 固定官方 fnOS 6.18.18.c1147-trim 相关候选/检查及独立安装脚本。安装、启动、块/挂载操作需要独立审查与设备授权。旧存储候选构建属历史研究，不是当前官方内核构建入口。 |
 | `fnos/accelerators/native/` | 固定源码/头文件 hash 与 Module.symvers CRC、HFI/布局/ABI 门；第三方 hash 不是秘密。必须提供匹配的外部官方头文件与 upstream 源；编译成功不等于可加载或安全 DMA。 |
+| `fnos/build-iris-module.sh` | 用仓库内 `build-inputs/` 官方 c1147 头编译 Iris 模块；核对 `Module.symvers` 固定哈希与 `iris_decode_once_run` CRC，拒绝已开启 gate，不加载模块。 |
 | `fnos/accelerators/native-decode/` | 验收解析器、真实本地文件事务及严格独立 admission；缺生产 trust/producers/receipts/live 输入拒绝。`native-job.py` 缺已验证原始 header 来源仍 fail-closed，不提供登录/token。 |
 | `fnos/quiesce-*` | 历史手动 source-edit/test pipeline，显式 external baseline/evidence 参数，固定 manifest/hash 门。非通用 builder，非自包含 pipeline，不作为完成硬件验收的证明。 |
 
 ## 必須由调用者独立提供的输入
 
-- 许可明确的外部官方 fnOS headers、匹配源码、config、`Module.symvers` 和编译/检查工具，见 `../patches/kernel/README.md` 与各子目录说明。ADSP cross-build 的 QEMU helper 还要求显式 `SYSROOT`；LIO runtime smoke 要求 `CUPID_TEST_BASE`，它操作 host modules/configfs/loop devices，未在本次执行。
+- 官方c1147构建头/`Module.symvers`已以完整校验归档提供在`../build-inputs/`，先解压到Linux大小写敏感目录；完整内核源码/config和工具链仍为外部输入。ADSP五个PAS源已包含，还需公开v6.18.18上游文件；QEMU helper要求显式`SYSROOT`。LIO runtime smoke要求`CUPID_TEST_BASE`，它操作host modules/configfs/loop devices，未在本次执行。
 - 官方 fnOS 根文件系统（如 `root.img`）、启动封装、合法固件和板级材料。本库不提供完整可刷系统，也不含原厂固件/ROM/校准。
 - 设备操作工具要求绝对 `-TargetFile`（私有 JSON，实际 `serial`/`adb`）和仓库外绝对 `-PrivateOutputRoot`。没有自动生成目标文件；明显 placeholder 被拒绝。所有生成日志、备份、实际校准/UUID/SSID/凭据只保存在外部私有目录。
 - native-decode production admission、独立 producer/信任文件、当前 slot/电量/恢复 receipt 与实际固件 manifest 由外部协调者提供；本发布不生成可冒充真实证明的样例。

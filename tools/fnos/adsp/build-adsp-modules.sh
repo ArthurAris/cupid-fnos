@@ -9,9 +9,17 @@ UP="${2:?upstream v6.18.18}"
 L7="${3:?local 7.2.8}"
 DIST="${4:?new output directory}"
 SOURCE=$(dirname "$(readlink -f "$0")")
+CROSS_COMPILE=${CROSS_COMPILE:-aarch64-linux-gnu-}
+CC=${CC:-${CROSS_COMPILE}gcc}
+HOSTCC=${HOSTCC:-gcc}
+JOBS=${JOBS:-2}
+[[ $JOBS =~ ^[1-8]$ ]] || { printf 'JOBS must be an integer from 1 to 8\n' >&2; exit 1; }
 SYSROOT=${SYSROOT:?provide a trusted absolute external fnOS userspace sysroot for qemu build helpers}
 [[ $SYSROOT == /* && -d $SYSROOT && ! -L $SYSROOT && $SYSROOT != *$'\n'* ]] || { printf 'Invalid external SYSROOT\n' >&2; exit 1; }
 export CUPID_ADSP_SYSROOT="$SYSROOT"
+export QEMU_LD_PREFIX="$SYSROOT"
+${CC} --version >/dev/null || { printf 'Target compiler unavailable\n' >&2; exit 1; }
+${HOSTCC} --version >/dev/null || { printf 'Host compiler unavailable\n' >&2; exit 1; }
 [ ! -e "$DIST" ] && [ ! -L "$DIST" ] || { printf 'Output must not exist\n' >&2; exit 1; }
 WORK=$(mktemp -d /var/tmp/cupid-adsp-build-XXXXXX)
 MOD="$WORK/modules"
@@ -32,7 +40,8 @@ while IFS= read -r f; do
     fi
 done < <(find "$WORK/headers/scripts" -type f)
 
-if ! make -C "$WORK/headers" M="$MOD" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules -j4 > "$WORK/build.log" 2>&1; then
+if ! make -f "$WORK/headers/Makefile" M="$MOD" MO="$MOD" ARCH=arm64 \
+    CROSS_COMPILE="$CROSS_COMPILE" CC="$CC" HOSTCC="$HOSTCC" -j"$JOBS" modules > "$WORK/build.log" 2>&1; then
     printf 'BUILD_FAILED log=%s\n' "$WORK/build.log" >&2
     exit 1
 fi

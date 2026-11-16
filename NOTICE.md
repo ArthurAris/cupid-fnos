@@ -19,7 +19,7 @@
 
 原隔离实验通过只限固定H264三帧/双STOP提交归还观察。最新研究后继只完成指定离线构建/测试，尚未实机验收。公开源码副本不能借用原镜像的hash声称自身已被刷写或通过物理验证。
 
-完整源树来自Linux Iris框架、针对SM8450回移的VPU2/gen2平台数据及本项目修复。原完整官方c1147源码/头、精确工具链和本机原始证据不随库再分发；来源详见 `docs/source-provenance.md`。无法核实的上游commit不会编造。
+完整源树来自Linux Iris框架、针对SM8450回移的VPU2/gen2平台数据及本项目修复。此次补充发布官方c1147构建头归档及五个GPL PAS源；保留各文件原有SPDX/版权。归档携带GPL、syscall例外、MIT、BSD、0BSD、LGPL及Bison相关完整条款：OR声明选择GPL分支，AND声明同时保留双方条件，LGPL不能被整体替换成GPL。七个ELF仅为构建助手，主源码和六个公开v6.18.18依赖头一同提供，并不包含驱动模块或固件。完整官方内核源码、工具链和实机原始证据未发布；详见`build-inputs/README.md`与`docs/source-provenance.md`，无法核实的上游commit不会编造。
 
 ## 不包含的第三方产品
 

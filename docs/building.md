@@ -2,64 +2,82 @@
 
 # 构建与离线验证
 
-## 能否直接编译使用
+## 能否编译使用
 
-**不能 clone 后直接编译出可刷的 fnOS 系统或 boot 镜像。** 本仓库是源码/研究快照，不是完整发行版或一键构建套件，也没有把原厂固件、fnOS 用户态、官方内核二进制、`root.img`、DTB 容器、签名密钥和私有准入材料放进来。
+**不能clone后直接生成可刷fnOS/boot镜像。** 仓库提供模块源码、官方c1147构建头归档和ADSP五个PAS源；不含固件、fnOS用户态、root.img、原厂DTB容器、签名密钥或设备准入材料。
 
-可以直接在普通 Linux/WSL 上运行的部分：
+可以运行Python离线测试与Iris实际C路径测试；可以在安装合适工具链后构建Iris模块。ADSP还需要公开Linux v6.18.18的15个源文件。模块编译通过不等于可生产加载或原生影视验收。
 
-- `tools/fnos/` 下的 Python 离线测试与解析器（416 项 unittest）。
-- `tests/iris/` 的实际 C 函数提取测试（需要 gcc 与 ASan/UBSan 支持）。
-- `tools/mkbootimg/` 的 Python CLI 帮助/解析逻辑（不含签名密钥）。
+## 1. 解压官方构建头
 
-需要使用者另行取得外部材料、且不保证开箱即成的部分：
+必须使用Linux/ext4大小写敏感目录，不能解压到默认Windows文件夹。完整头包存在8对大小写不同的头文件；归档已保留全部文件名，配套清单逐项hash校验。
 
-- **Iris 驱动模块**：仓库只有 Iris 子目录源码（verified/research 各 57 个文件），不是完整内核树。需要官方 `6.18.18.c1147-trim` 的匹配 Kbuild、headers、config、`Module.symvers`、全部提供者，以及对应 GCC 工具链；`sources.json` 只固定源文件 hash，不包含上游源本身。
-- **ADSP/电池模块**：需要官方 headers、上游 6.18.18 基础设施源和与官方 PAS 头匹配的 7.2.8 部分源码；仓库不提供完整第三方树。
-- **存储候选/LIO 适配器**：需要外部 Linux 构建树与配置；旧 `config-v78`/`config-fnos` 已移除（旧配置实际是 7.2.8）。
-- **llbitmap 补丁**：目标 md/llbitmap 源码不在库内，先自行取得匹配基线与许可并核验。
-- **隔离 PID1**：`usb-init.c` 需要 `runner-record.h`、`decode-bindings.h`、`module-records.h` 等在原实验中按实际模块/资产/fixture 生成的绑定头；这些包含设备/资产 pin，未随库发布，因此不能直接编译。
-- **initramfs / 镜像 / 固件**：无构建脚本、无静态 BusyBox、无固件、无 `root.img`、无原厂 DTB 容器、无签名密钥；不能生成可刷镜像。
-- **fnOS 自带 FFmpeg / 影视任务**：不含 fnOS 用户态与媒体服务，无法从本仓库复现真实原生任务。
+```bash
+python3 -I -B tools/fnos/unpack-build-headers.py \
+  --archive build-inputs/linux-headers-6.18.18.c1147-trim-complete.tar.xz \
+  --manifest build-inputs/linux-headers-6.18.18.c1147-trim-complete.manifest.json \
+  --sha256 3a19038f84738af3505f51571cfeaa1090c1c947e2abd90df48d5e09023e4b08 \
+  --output /var/tmp/cupid-c1147-headers
+```
 
-公开驱动执行门默认关闭。即使自行构建，也不应把源码存在当作可加载、可执行或可部署的证明；真实设备仍须重新完成 ABI、所有权寿命、恢复入口与备份核验。
+归档约9.4MB、解压约54.7MB、7220文件，含`Module.symvers`、生成配置及Kbuild材料。7个AArch64构建辅助工具附带对应源码/依赖头和原许可证；不是驱动`.ko`。详见[构建输入](../build-inputs/README.md)。
 
-## 先了解限制
+## 2. 工具链
 
-仓库只提供fnOS适配研究源码，不附带完整官方内核、固件、fnOS用户态、root.img、原厂DTB容器、准入/信任配置或可刷镜像。目标为官方c1147；历史fnOS PID1与7.x存储工具仅供研究，不是当前完整官方启动流水线。
+- Linux/WSL、Python3、GNU make、file、binutils，以及ARM64 GCC12.2交叉编译器（例如Debian12的`gcc-12-aarch64-linux-gnu`）。
+- x86主机需要`qemu-user-static`与合法AArch64 sysroot，包含glibc动态加载器及助手所需运行库。不能只设置一个空目录；`SYSROOT`须是使用者安装的真实sysroot。
+- `CC`、`HOSTCC`和交叉前缀可以显式指定；默认并行度2（`JOBS=1..8`），控制宿主磁盘/内存占用。
+- 本项目验证使用GCC12.2.0 Debian `12.2.0-14+deb12u1`；原内核为`12.2.0-14`。保留修订号差异/BTF缺vmlinux和完整ABI未知，不将版本号接近称等价证明。
 
-对设备运行前，必须重新完成匹配内核ABI、依赖、合法固件、所有权寿命、恢复入口与当前备份检查。公开驱动入口默认关闭，本文不指导直接启用或刷写。
+原生ARM64可直接运行头包助手；ADSP脚本仍要求有效SYSROOT参数。交叉编译器可由宿主原生工具链提供，或使用匹配sysroot内的ARM64编译器并配置qemu与`-B`工具路径。
 
-## 环境与输入
+## 3. Iris模块
 
-- Linux/WSL与Python3；建议用`python3 -I -B`执行读取外部材料的脚本。
-- 主机C编译器、ASan/UBSan支持用于源码路径测试。
-- ARM64交叉编译器；历史Iris目标使用GCC12/c1147头，静态client/PID1使用GCC15。不同工具链构建需自己的hash与ABI核验。
-- c1147的匹配Kbuild、`.config`、generated headers、`Module.symvers`及全部提供者。没有这些材料时测试或构建应明确失败/报告缺失，不能降低验证门。
-- 固件由使用者自行合法获取，不下载未知附件、不给安全加载器放宽认证。
+在仓库根目录运行：
 
-## 当前可独立运行的host测试
+```bash
+SYSROOT=/path/to/aarch64/sysroot \
+CC=aarch64-linux-gnu-gcc-12 HOSTCC=gcc JOBS=2 \
+  bash tools/fnos/build-iris-module.sh \
+  /var/tmp/cupid-c1147-headers /var/tmp/iris-build
+```
 
-在仓库目录执行明确脚本路径，不从不可信源码/下载材料目录启动解释器：
+输出目录必须不存在。脚本校验`Module.symvers`固定hash和公开硬件执行门为0，逐文件核对复制的headers后构建，检查`iris_decode_once_run`CRC`0x2fe0a796`，输出模块及构建记录。不会加载模块/改手机。
+
+**验证状态**：同份公开gate0Iris源码已用c1147头完整GCC12构建，版本`6.18.18.c1147-trim SMP mod_unload modversions aarch64`正确。归档版保留了原头全部内容，但此次Iris归档重验因宿主空间耗尽、WSL只读回退未完成；不将失败算成功。运行前仍须匹配ABI、依赖、认证固件、所有权/恢复合同和当前备份。
+
+## 4. ADSP十模块
+
+从公开Linux stable v6.18.18取得源码（不能拿任意6.18标签替代），构建器逐项核对15个文件hash。PAS五文件已包含，不必下载完整7.2.8树。
+
+```bash
+SYSROOT=/path/to/aarch64/sysroot \
+CC=aarch64-linux-gnu-gcc-12 HOSTCC=gcc JOBS=2 \
+  bash tools/fnos/adsp/build-adsp-modules.sh \
+  /var/tmp/cupid-c1147-headers /path/to/linux-6.18.18 \
+  build-inputs/adsp-7.2.8-pas /var/tmp/adsp-build
+```
+
+脚本使用固定新输出目录，构建后检查全部10模块身份、版本化导入/导出和冲突。完整归档解压后的材料已实际构建通过：362导入（331官方、31组内）、CRC不符0、导出冲突0、符号失败0；`layout_verified=false`，没有加载设备。
+
+## 仍需外部材料
+
+- 存储候选/LIO内核：完整匹配内核树和配置；不能凭几个头构建完整内核。
+- llbitmap补丁目标源码需核验；此次未选择上传。
+- 隔离PID1缺实际模块/fixture生成的绑定头；不随库提供设备nonce/准入数据。
+- 完整启动镜像缺BusyBox、固件、fnOS用户态/root.img、DTB封装和恢复材料。
+- 自带FFmpeg/影视真实任务、PERSIST安全回收和重复长负载仍未验收。
+
+## 离线测试与公开检查
 
 ```bash
 python3 -I -B tools/fnos/accelerators/native-decode/test_acceptance.py
 python3 -I -B tools/fnos/accelerators/native-decode/test_deploy.py --host-test-base /var/tmp
 python3 -I -B tools/fnos/accelerators/native-decode/test_native_job.py
-```
-
-部署测试只能在支持Linux权限的隔离ext4临时目录执行，不使用真实系统根、设备分区或生产服务。它验证文件事务，不验证驱动安全或设备boot备份。
-
-Iris实际C函数提取测试使用方法见 `tests/iris/README.md`。它们的facade模拟部分内核/provider合同，不是完整VB2、真实IRQ并发或固件DMA证明。
-
-其他 `tools/` 子目录保留历史实验脚本，参考各README和输入schema。有缺失源/外部spec/上游树的测试不应作为“全通过”统计。并未为发布重新完整构建整个操作系统。
-
-## 发布安全检查
-
-```bash
 python3 -I -B scripts/check-public-release.py --root .
+python3 -I -B scripts/check-source-manifests.py --root .
 ```
 
-初始化独立Git历史后还要扫描实际暂存文件和Git对象；`.gitignore`不能删除已有历史敏感数据。全部文件白名单、第三方许可、当前状态、文档链接和依赖都须核对。
+部署测试fixture只放支持Linux权限的隔离ext4目录。Iris提取测试见[测试说明](../tests/iris/README.md)，host facade不是真实IRQ/firmwareDMA证明。公开检查会解压扫描归档每个成员及Git中对应blob；不能仅因压缩文件名相符放行未知二进制。
 
-不执行手机命令的测试通过后，只能说明对应离线范围成立。真实硬件原生验收条件见 [状态](status.md) 与 [安全规则](safety.md)。
+完整fnOS/原生影视状态见[状态](status.md)，设备运行前安全条件见[安全](safety.md)。

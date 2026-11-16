@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "Module.symvers": "121ac1b2269aa229ec044ff7bc3211ee3a7eea74829f89979603240299ab31a6",
+    "autoconf": "ee5325dc7b38620525d4b4c04b71b1bf343ec475e8cd60e6cbbbb9ac44f86053",
+    "auto_conf": "5fb1d18b8cc58e9ebf3f918a6a8264c6cfcedb7c503231f2154c74272ad7a14d"
+  },
+  "pas": {
+    "drivers/remoteproc/qcom_common.c": "59691a7bb2f24c88fd499f230f8fed9ed6dfee653a50025646e706a06adcee73",
+    "drivers/remoteproc/qcom_common.h": "02601daee6453985b6d149a7787c7b0b66b02a423deeab8b62164322a6f5de1d",
+    "drivers/remoteproc/qcom_q6v5.c": "b18c9e6e9aa15cd0f64d02b7043ddf3581491fbd02db11180b2574e63e7dbb51",
+    "drivers/remoteproc/qcom_q6v5.h": "8f3b9bac8a53f686ce76993bc5b15dc1e5b6e6a5304530242e5c761bf9bf6be0",
+    "drivers/remoteproc/qcom_q6v5_pas.c": "3e86748e9429516b63b981bed69401e7297c66bda344cfe1e6f22c2290986b1e"
+  },
+  "skipped_symlinks": [
+    "scripts/kernel-package-postprocess.sh"
+  ],
+  "header_archive": {
+    "path": "linux-headers-6.18.18.c1147-trim-complete.tar.xz",
+    "sha256": "3a19038f84738af3505f51571cfeaa1090c1c947e2abd90df48d5e09023e4b08",
+    "bytes": 9355492,
+    "uncompressed_bytes": 54728962,
+    "files": 7220,
+    "per_file_manifest": "linux-headers-6.18.18.c1147-trim-complete.manifest.json",
+    "case_sensitive_names_preserved": true,
+    "elf_build_helpers": 7,
+    "public_helper_dependency_headers_supplemented": 6
+  },
+  "pas_source_files": 5,
+  "contains_firmware": false,
+  "contains_module_binaries": false
+}

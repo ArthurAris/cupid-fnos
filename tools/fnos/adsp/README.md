@@ -15,10 +15,20 @@
 
 ## 离线构建
 
+在仓库根目录先按`build-inputs/README.md`将完整c1147头归档解压到Linux/ext4目录，然后执行：
+
 ```sh
-bash build-adsp-modules.sh <official-headers> <upstream-6.18.18> <local-7.2.8> <new-output-dir>
+SYSROOT=/path/to/aarch64/sysroot \
+CC=aarch64-linux-gnu-gcc-12 HOSTCC=gcc JOBS=2 \
+  bash tools/fnos/adsp/build-adsp-modules.sh \
+  /var/tmp/cupid-c1147-headers \
+  /path/to/linux-6.18.18 \
+  build-inputs/adsp-7.2.8-pas \
+  /var/tmp/adsp-build
 ```
 
+- 官方c1147完整头归档与五个PAS源已包含，大小写同名头须在Linux文件系统保留；仍需公开Linux v6.18.18的15个固定源文件（`source-inputs.json`核验），安装匹配GCC/binutils与有效AArch64 sysroot。
+- 本次从归档解压输入实际十模块构建/校验通过：362导入（331官方、31组内）、CRC不符0、导出冲突0、符号失败0。`layout_verified=false`，未加载手机，不替代完整ABI/电池实机验收。
 - 输出目录必须不存在；构建工作目录始终新建，保留日志及未strip对象供ABI核验。
 - `source-inputs.json`固定已核验输入字节（源码CRLF规范化后）；不下载或执行输入目录中的Python。
   该清单记录本地接受的版本，不替代上游签名认证；官方头文件来源仍须可信。

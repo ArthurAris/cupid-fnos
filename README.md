@@ -18,6 +18,7 @@
 ## 目录
 
 - [`docs/features.md`](docs/features.md)：**按功能逐项列出适配内容、实测证据与限制**（系统/存储/WebUI/WiFi/GPU/监控/ADSP/电池/UPS/Iris）。
+- [`build-inputs/`](build-inputs/)：官方 c1147 头文件/`Module.symvers` 与 ADSP 的 5 个 PAS 源。
 - [`tools/fnos/`](tools/fnos/)：fnOS存储、GPU、ADSP、电池、ABI、硬解验收与事务部署工具。
 - [`sources/iris/`](sources/iris/)：原成功隔离实验基线与最新研究后继；公开执行门默认关闭。
 - [`tests/iris/`](tests/iris/)：实际C路径的host测试，明确facade边界。
@@ -30,9 +31,9 @@
 
 ## 使用前
 
-**不能 clone 后直接编译出可刷 fnOS 或 boot 镜像。** 可直接运行的是离线测试/解析工具；驱动模块、PID1、启动镜像与影视任务都需要外部匹配内核材料、固件、用户态和封装，详见 [`docs/building.md`](docs/building.md)。
+**不能 clone 后直接编译出可刷 fnOS 或 boot 镜像。** 仓库已包含官方 c1147 构建头归档（`build-inputs/`）和 ADSP 的 5 个 PAS 源；解压到 Linux 大小写敏感目录并安装匹配工具链后可构建模块。Iris 公开源码已有完整构建验证，ADSP 使用完整归档已构建通过；ADSP 仍需公开 Linux v6.18.18 的15个上游源文件。完整系统/PID1/影视任务仍需要外部材料，详见 [`docs/building.md`](docs/building.md)。
 
-没有一行刷机quickstart。官方c1147构建需要匹配的外部源码/headers/config/Module.symvers、合法固件、根文件系统和启动封装；本库不提供完整可刷流水线。不要把历史7.x fnOS研究工具当当前官方内核构建方案。
+没有一行刷机quickstart。官方c1147模块构建材料已提供，但完整系统仍需要合法固件、匹配源码/配置、根文件系统和启动封装；本库不提供完整可刷流水线。不要把历史7.x fnOS研究工具当当前官方内核构建方案。
 
 Iris硬件执行门默认关闭，不隐式部署或改bootloader状态。部分显式安装工具会启用服务供后续开机使用；须逐项审核，源码存在不表示操作授权。运行隔离实验前必须先补齐并验证恢复入口，避免无远程重启通道的HOLD。
 
