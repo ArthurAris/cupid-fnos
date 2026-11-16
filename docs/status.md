@@ -6,8 +6,6 @@
 
 ## fnOS 系统阶段
 
-本仓库仅记录fnOS适配。主线Linux/Ubuntu/Phosh的显示、触摸和桌面成果属于独立仓库，不是这里的官方fnOS内核显示验收。
-
 官方 `6.18.18.c1147-trim` 内核与 fnOS arm64 用户态在设备运行。已进行 systemd、Btrfs存储、WebUI、Docker、SMB、WiFi与正常重启验证；Adreno 730 GPU计算和网页利用率/温度监控已有实机证据，电池经ADSP/PDR/battmgr链路出数并在UPower/UPS页面显示。
 
 不应据此推断所有fnOS功能都稳定。仍有自动更新不适配手机启动分区、GPU显存统计缺失、UPS阈值/低电量回归不足、完整存储卸载EBUSY以及部分电源管理限制。后期实验只进行RAM启动，没有将Iris生产负载持久安装。

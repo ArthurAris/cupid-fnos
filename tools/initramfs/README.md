@@ -2,7 +2,7 @@
 
 本目录只保留 `init_static_fnos_v1.c`：从 `userdata` 分区挂载 `/host/fnos/root.img`，校验 fnOS 标记后交接 systemd 的历史研究实现。
 
-**它不是当前官方 c1147 完整启动流水线**，也没有随库提供构建脚本、静态 BusyBox 或可刷 initramfs。旧主线 init v21 与构建脚本已移除。
+**它不是当前官方 c1147 完整启动流水线**，也没有随库提供构建脚本、静态 BusyBox 或可刷 initramfs。
 
 ## 行为范围
 

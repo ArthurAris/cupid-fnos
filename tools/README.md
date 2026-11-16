@@ -2,8 +2,6 @@
 
 这是 **fnOS 专用**的 source-only 研究发布，不是完整刷机包、固件包或可直接日用的安装器。只发布审核后的文本源码、测试与配置；没有镜像、DTB、模块二进制、缓存、真实日志、凭据或设备唯一数据。脚本被保留不表示已经运行或已证明硬件可用。
 
-主线 Linux / Ubuntu / Phosh 工具不在本仓库，见已有的主线移植仓库。
-
 ## 工具范围
 
 | 子树/工具 | 适用范围与边界 |
@@ -30,7 +28,7 @@ Iris 驱动执行门默认关闭，本仓库不提供隐式部署或 bootloader 
 
 ## 许可与遗漏
 
-原创脚本/C 工具新增 GPL-2.0-only 标识；原内核 GPL/双许可标识不改；AOSP Apache notices 保留，完整许可由仓库 license 文档覆盖。主线板级补丁、DTS、Ubuntu/Phosh 桌面与旧 7.x 串口/部署工具已从当前文件树移除。省略未明许可的提取数据、历史 `native-repeat-*` 私有 gate-token/自修改 pipeline、原 rootfs 基线 hash 操作记录及全部缓存。保留测试里的合成 MAC/全零 UUID/拒绝样例及协议 `token` 字段，不做全词删除；USB 本地管理测试地址不是原厂 MAC，但不适合多机部署，需独立分配。
+原创脚本/C 工具新增 GPL-2.0-only 标识；原内核 GPL/双许可标识不改；AOSP Apache notices 保留，完整许可由仓库 license 文档覆盖。不随库发布未明许可的提取数据、历史 `native-repeat-*` 私有 gate-token/自修改 pipeline、原 rootfs 基线 hash 操作记录及全部缓存。保留测试里的合成 MAC/全零 UUID/拒绝样例及协议 `token` 字段，不做全词删除；USB 本地管理测试地址不是原厂 MAC，但不适合多机部署，需独立分配。
 
 ## 可重复的离线测试
 

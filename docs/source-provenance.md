@@ -11,7 +11,7 @@
 - Linux stable：<https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/>
 - Iris框架：<https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/drivers/media/platform/qcom/iris?h=v6.18.18>
 
-“纯fnOS”指项目适配目标，不意味着删除fnOS需要的Linux派生GPL驱动。主线Linux/Ubuntu/Phosh的板级/桌面移植材料不在本仓库当前文件树。
+“纯fnOS”指项目适配目标，不意味着删除fnOS需要的Linux派生GPL驱动。
 
 ## Iris快照
 
@@ -23,7 +23,7 @@
 
 `init_static_fnos_v1.c`是从userdata中的fnOS根镜像交接systemd的历史研究。它不是官方c1147完整启动依赖，也不意味着已发布可刷initramfs。
 
-llbitmap补丁和部分7.x存储构建脚本保留为fnOS研究；对应目标源码、官方兼容性及真实系统验收需独立核对。不能拿它们覆盖后期官方内核的存储成果或当通用主线配置。
+llbitmap补丁和部分7.x存储构建脚本保留为fnOS研究；对应目标源码、官方兼容性及真实系统验收需独立核对，不能拿它们覆盖后期官方内核的存储成果。
 
 ## 测试与许可
 
