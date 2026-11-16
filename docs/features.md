@@ -144,6 +144,13 @@
 - **两次独立真机结果**：均 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，双 STOP ACK 匹配，三帧 PTS 1.0/1.04/1.08s 各 24576B，独立 FDE 验证两次通过；捕获 `b29e408d…`（101898B）与 `aa596c4f…`（101803B）。PERSIST 回执变为 `flags=35`（含 close_retired）、`request_generation=0`。
 - **边界**：这是 PERSIST 关闭退休的单变量条件验收。CLOSE ACK 原始字段仍不在回执内，完整 quiesce 外部证明不成立；安全回收、全核心 DMA 停止、close/reopen、长负载与原生影视任务均未验收。详见[PERSIST 生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
 
+### 自动重启到 fastboot：DT 方案已回退
+
+- **曾实测可行**：给生产 dtbo 加 `nvmem-reboot-mode` 节点并加载三个上游模块（`nvmem_qcom-spmi-sdam`、`reboot-mode`、`nvmem-reboot-mode`）后，`systemctl reboot --reboot-argument=bootloader` 把设备直接送入 fastboot。三者均为 `tristate`，编成模块即可，无需重编官方内核。DT 中 `sdam@7100/restart@48` 这个 nvmem cell 本来已存在并被 `reboot_reason` 引用，只缺一个写入方。
+- **实现缺陷已回退**：解析 dtbo 表时字段顺序错位且用了 44 字节步长（真实为 32），只识别出 4 个假条目；实际 entry 0 与 entry 1 相邻（间隔 0），扩大 entry 0 覆盖了 entry 1 前 177 字节。分区已用原始备份回退，但设备随后进入隔离 HOLD、串口静默，回读哈希未确认。
+- **离线替代已就绪**：整表重排脚本按真实 44 条目重算全部偏移与 `total_size`，结构自检显示无重叠、全部为合法 FDT，未上机。
+- **其余结论不变**：`fastboot boot` 报 `Not Found` 的真实原因是 `slot-retry-count:b=0`，`fastboot set_active b` 可恢复。
+
 ### 串口恢复入口（未验证）
 
 为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。错误依次为 `pause()` 阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在 observer 子进程使用 flow 子进程设置的全局、把 fd 号写进共享内存（fd 是进程局部的，跨进程无效）。当前版本改用已有的 `SCM_RIGHTS` 通道，编译通过但未上机。该入口即使工作也只能重启到正常启动目标，不能进 fastboot（官方 Image 未编入 `CONFIG_NVMEM_REBOOT_MODE`）。详见[恢复入口状态](fnos-recovery-entry-status-20261116.md)。

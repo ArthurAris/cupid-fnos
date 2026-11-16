@@ -46,6 +46,16 @@
 
 **这是单变量生命周期修复的条件验收，不是安全回收、DMA停止、close/reopen或原生影视验收。** 详见[PERSIST生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
 
+### 自动重启到 fastboot：DT 方案已回退（2026-11-17）
+
+曾确认可行：给生产 dtbo 加 `nvmem-reboot-mode` 节点 + 加载三个上游模块（SDAM / reboot-mode / nvmem-reboot-mode）后，`systemctl reboot --reboot-argument=bootloader` 实测把设备直接送入 fastboot，无需人工按键。这三个驱动都是 `tristate`，编成模块即可，不需要重编官方内核。
+
+但把同一节点写进 dtbo 的实现有缺陷：解析脚本用错 dtbo 表步长（44 而非真实 32），只看到 4 个假条目，把 entry 0 扩大后覆盖了相邻 entry 1 的前 177 字节。分区已用原始备份回退（`fastboot flash` 写入回执 OKAY），**但设备随后落入隔离 HOLD、串口静默，回读哈希未确认**。
+
+正确的整表重排脚本已完成离线实现与结构自检（44 条目、无重叠、偏移与 total_size 全部重算），未上机。详见[dtbo 修改事故与回退](fnos-dtbo-incident-20261117.md)与[全自动重启到 fastboot](fnos-auto-reboot-to-fastboot-20261117.md)。
+
+期间查明 `fastboot boot` 失败的另一个原因是已知的 `slot-retry-count:b=0`，`fastboot set_active b` 可恢复——与本文档既有的 B 槽 `slot-successful` 未持久置位问题一致。
+
 ### 串口恢复入口：未验证
 
 为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。发现的错误依次为`pause()`阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在observer子进程使用flow子进程设置的全局、把fd号写进共享内存（fd是进程局部的，跨进程无效）。当前版本改用已有的`SCM_RIGHTS`通道，编译通过但未上机。
