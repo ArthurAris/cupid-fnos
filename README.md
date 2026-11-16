@@ -15,10 +15,11 @@
 | Iris H264/NV12 | 隔离单会话固定三帧128×128 NV12，oracle/PTS一致；双端口STOP ACK匹配；INPUT 3/3、CAPTURE 19/19次提交报告归还 | 内部backing保留，不证明DMA停止或安全回收。CAPTURE为16个allocation |
 | 生命周期研究 | 逐allocation所有权、严格回包/取消入口守门、cold-init电源自锁修复，host测试和目标构建完成 | 最新修复未上机通过；PERSIST、close/reopen、重复和长视频未验收 |
 
-**fnOS自带FFmpeg与影视的原生H264解码 level5 尚未完成。** HEVC、硬件编码、NPU及全硬件转码也未验收。hash、计数、ACK和host测试不能替代物理DMA/真实原生任务证据。
+**fnOS自带FFmpeg与影视的原生H264解码 level5 尚未完成。** HEVC、硬件编码、NPU及全硬件转码也未验收。hash、计数、ACK和host测试不能替代物理DMA/真实原生任务证据。逐项适配细节与实测数据见 [`docs/features.md`](docs/features.md)。
 
 ## 目录
 
+- [`docs/features.md`](docs/features.md)：**按功能逐项列出适配内容、实测证据与限制**（系统/存储/WebUI/WiFi/GPU/监控/ADSP/电池/UPS/Iris）。
 - [`tools/fnos/`](tools/fnos/)：fnOS存储、GPU、ADSP、电池、ABI、硬解验收与事务部署工具。
 - [`sources/iris/`](sources/iris/)：原成功隔离实验基线与最新研究后继；公开执行门默认关闭。
 - [`tests/iris/`](tests/iris/)：实际C路径的host测试，明确facade边界。
