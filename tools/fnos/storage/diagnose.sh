@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-2.0-only
-# Read-only inspection; use tools/linux-serial.ps1 for target verification.
+# Read-only inspection; no serial wrapper is shipped in this fnOS-only release.
 set -eu
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 printf '=== board ===\n'

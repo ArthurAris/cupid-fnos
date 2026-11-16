@@ -36,7 +36,7 @@ that app permissions, updates, or shutdown work correctly on the phone.
 
 ## Current phone state must be inspected first
 
-**Release correction:** the published `linux-serial.ps1` intentionally accepts only the historical 7.x/cupid kernel identity and must not be used on official fnOS 6.18. It is not a fnOS diagnostic wrapper; this release supplies no substitute with widened gates. An independently reviewed external fnOS operator channel, actual serial, host mutex and fresh board/kernel state are required before any phone diagnostic. All device logs remain outside the release in private storage; no phone commands were executed for this release.
+**Release correction:** this repository no longer ships a serial/diagnostic wrapper. The historical 7.x `linux-serial.ps1` accepted only the old kernel identity and was removed from the fnOS-only tree rather than widened for official fnOS 6.18. An independently reviewed external fnOS operator channel, actual serial, host mutex and fresh board/kernel state are required before any phone diagnostic. All device logs remain outside the release in private storage; no phone commands were executed for this release.
 
 The earlier **outer RAID1 → GPT partition → inner RAID1 → LVM → Btrfs** layout
 was inspected read-only before migration. After explicit authorization it was
@@ -77,9 +77,10 @@ when building matching modules. Never run `mrproper`/broad `pkill` to fix a wait
 
 Required options: `TARGET_CORE`, `TCM_IBLOCK`, `LOOPBACK_TARGET` and their
 Kconfig dependencies. Preserve `MD_LLBITMAP`, `ARCH_QCOM`, `CUPID_*`, disabled
-`CPU_IDLE`, and the existing embedded fnOS initramfs. `patches/kernel/config-fnos`
-was corrected on 2026-11-05 to match the validated `config.built` byte for byte;
-see [local regression results](../../../docs/status.md).
+`CPU_IDLE`, and the existing embedded fnOS initramfs. The old `config-fnos`
+file was a historical 7.2.8 configuration and is not shipped in this fnOS-only
+tree; obtain and verify a matching official c1147 config externally.
+See [current scope](../../../docs/status.md).
 
 ## Adapter configuration
 

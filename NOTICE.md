@@ -7,7 +7,7 @@
 本项目原创代码（脚本、验证器、隔离监督器与适配代码）在此发布副本中采用 **GPL-2.0-only**。原创README与说明文档采用 **CC-BY-4.0**。文件已有更具体的第三方版权或许可证时，原文件声明优先；不得用本仓库许可证覆盖第三方限制。
 
 - `sources/iris/`：Linux Qualcomm Iris 驱动派生，保留 Qualcomm Innovation Center、Linaro及相关上游版权/SPDX，按GPL-2.0-only分发。
-- `patches/kernel/`：Linux内核派生修改与板级代码，遵循各文件/上游GPL条款。10个DTS文件的原声明为BSD-3-Clause或包含该许可的双许可，保留这些声明并附带`LICENSES/BSD-3-Clause.txt`；原文件没有署名的部分不凭空添加作者。
+- `patches/kernel/`：仅保留fnOS存储修复研究，遵循原Linux GPL条款；目标源码与适用性需另行核验，不作为已验收官方补丁。
 - `tools/mkbootimg/`：Android Open Source Project打包代码，保留Apache-2.0原始声明。
 - 某些代码从内核头或算法派生，保留原SPDX和Linux syscall note等适用例外。用户空间独立脚本不意味着可改变内核来源条款。
 
@@ -23,9 +23,9 @@
 
 ## 不包含的第三方产品
 
-fnOS用户态、原厂固件/ROM/校准、设备镜像与备份均未包含。这里的GPL/CC许可不授予它们的许可权。名称Xiaomi、Qualcomm、fnOS、Ubuntu等仅用于描述兼容目标。
+fnOS用户态、原厂固件/ROM/校准、设备镜像与备份均未包含。这里的GPL/CC许可不授予它们的许可权。名称Xiaomi、Qualcomm和fnOS仅用于描述兼容目标。
 
-面板提取表或其他来源/再分发权未明确的数据不发布；不把自行添加SPDX当作许可来源证明。
+来源/再分发权不明确的数据不发布；主线板级与Ubuntu桌面资料已从本仓库当前文件树分离。范围修正采用正常新增提交，未强推重写最初公开提交。
 
 ## 文档归属
 
