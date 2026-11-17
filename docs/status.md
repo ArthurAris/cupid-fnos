@@ -82,6 +82,6 @@ fastboot boot r6 → 隔离系统 → USB v2 协议 + 60 秒观测 → 硬解三
 
 **level 5 仍未完成的实质内容**：原始CLOSE ACK字段导出与关联、CPU响应排空的物理证明、实际安全回收与 free、真实 close/reopen、30 轮会话、720p/1080p、至少 600 秒连续负载、seek/flush/DRC/错误取消、fnOS 自带 FFmpeg 与影视真实任务、无 CPU 静默回退证明，以及生产侧模块持久化、正常重启回归与回滚。
 
-**当前最大缺口**：CLOSE ACK 原始字段不在 180 字节回执内，因此完整 quiesce 仍只有内部状态证明，没有固件侧外部证明。
+**CLOSE ACK 已导出（2026-11-17）**：固件自己的确认字第一次进入证据链——`HFI_CMD_CLOSE`、`HFI_PORT_NONE`、32 字节裸包、仅 SUCCESS、header/packet 回显一致、恰好一次，并与 `rc=0`/`stage=5` 同次取得。验证器后继新增 9 条断言（无放宽），13 个合成用例证明它拒绝每一种错误 ACK。**但这只是固件确认，不是 DMA 停止证明。** 详见[CLOSE ACK 原始字段导出验收](fnos-close-ack-export-20261117.md)。
 
 HEVC、硬件编码和NPU是独立能力，不在当前通过范围。

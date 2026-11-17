@@ -160,6 +160,16 @@
 
 **限制**：`hf_receive_metadata_once` 要求 `confirmed==1`，因此只有观测成功的 HOLD 才拿到串口描述符；观测失败的 HOLD 入口永久失聪。这是设计限制，不是字面量问题。
 
+### CLOSE ACK 原始字段（条件验收，2026-11-17）
+
+此前 45 条 180 字节回执不含 CLOSE ACK 本身，quiesce 只能证明驱动内部走到 stage 5。单变量改动在 CLOSE 响应处理器里于任何身份校验**之前**捕获固件原始字，并借用整会话回执（`kind=0xFFFFFFFF`）原本恒为 0 的 owner 槽位导出；`flags` 只用 bit 0..4，落在冻结验证器既有掩码内，未放宽任何验证逻辑。
+
+真机 RAM 运行（捕获 `f8a2e11c…`，101,898 B）实测：`ack_type=0x01000004`（HFI_CMD_CLOSE）、`ack_port=0`（HFI_PORT_NONE）、`ack_size=32`（裸包无 payload）、`ack_flags=1`（仅 SUCCESS）、`payload_info=0`、ACK 回显的 header/packet 与我们的请求完全一致（100/107）、`ack_seen=1`；同时 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`。
+
+验证器后继 `9c383fef…` 新增 9 条断言（无放宽），并用 13 个合成用例证明它能拒绝每一种错误 ACK（缺失、不匹配、错类型、错端口、带 payload、失败、多余标志、回显不一致、重复）。结构验证器 pin 38→39，新增对 CLOSE 分发函数的覆盖；布局隔离实验（旧源码+新头文件对照模块，414 函数逐指令比较，412 一致）证明其余 pin 变化只来自结构体增长。
+
+**边界**：固件确认不等于 DMA 停止；安全回收、真实 free、close/reopen、30 轮、720p/1080p、600 秒与原生任务仍未验收。 详见[CLOSE ACK 原始字段导出验收](fnos-close-ack-export-20261117.md)。
+
 ### 未完成
 
 原始 CLOSE ACK 字段导出与关联、CPU 响应排空的物理证明、实际安全回收与 free、真实 close/reopen、30 轮会话、720p/1080p、至少 600 秒连续负载、seek/flush/DRC/错误取消、fnOS 自带 FFmpeg 与影视真实任务、无 CPU 静默回退证明、持久部署与重启回归。HEVC、硬件编码、NPU 独立且未验收。
