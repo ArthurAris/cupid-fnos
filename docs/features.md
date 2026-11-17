@@ -126,34 +126,39 @@
 - 停流：BITSTREAM STOP（header 98 / packet 105）与 RAW STOP（99 / 106）均取得身份匹配的成功 ACK；INPUT 累计提交/归还 3/3，CAPTURE 19/19（19 为累计提交，不是 19 个不同 allocation）；停流后 QUEUED/READONLY/unknown 位图为 0。
 - **边界**：所有内部 backing 继续保留，未 free/CLOSE/PM teardown；不证明 DMA 停止或安全回收。验收是候选/单次 boot/主机/节点 ioctl/oracle 的条件证据，不是认证物理来源；原始报告中 hardware false 不反写。
 
-### 生命周期研究（最新，未上机通过）
+### 生命周期研究（部分已上机）
 
 - 逐 allocation 代际账本：记录每次实际序列化提交的 header/packet/generation/tuple，APP 使用最新提交身份而非首投；内部对象区分旧代 PSC 释放、新代 STOP 返回、DPB 首投身份与 PERSIST 独立 RELEASE 请求，READONLY/unknown 不解除所有权。
 - 有界关闭控制：STOP → 逐 APP 归还 → 剩余内部 RELEASE → CLOSE → 撤 lookup/base → 有界 CPU 响应排空；控制本身不 free。
 - 180 字节逐对象回执，含内部 list ordinal、原 buffer index/retired、请求与实际回包身份/flags；原始 CLOSE ACK 尚未包含，因此完整 quiesce 仍不能判定。
 - 三处安全门修复：reclaim=0 时公开 STREAMOFF/REQBUFS(0) 与 stop 回调均在进入框架前拒绝；内部归还先核对 QUEUED/PENDING/READONLY/retired/原 validator 再改所有者；所有 native BUFFER 先严格校验完整 STRUCTURE 再读 wire type，畸形回包不进入旧释放路径。
 - 冷启动修复：发现 checked 电源入口在 cold INIT 持 core mutex 时再次获取同一锁，且 session-held helper 要求已有会话，与初始化无会话矛盾；单变量后继移除该 shortcut，恢复完整 checked provider 初始化。普通 O2/ASan/UBSan 与实际 core 调用者测试通过，GCC12 目标模块构建通过（179 imports/180 versions，完整 ABI 仍 unknown）。
-- **边界**：一次加固镜像 RAM 实验在 runner loader 阶段超时 `-110`，客户端未启动、无新帧/PERSIST 回包。不能把该静态锁缺陷当已直接观测的设备根因，也不能以 host 测试冒充原生任务。
+- **边界**：加固镜像的首轮 RAM 实验曾在 runner loader 阶段超时 `-110`，客户端未启动。冷启动修复后该路径已越过 loader 超时并解出三帧（见下一节）。不能把静态锁缺陷当作已直接观测的设备根因，也不能以 host 测试冒充原生任务。
 
-### PERSIST 生命周期修复（条件验收，两次真机复现）
+### PERSIST 生命周期修复（条件验收，多轮真机复现）
 
 冷启动修复后一次 RAM 实验首次越过 loader 超时：客户端启动、解出三帧、双 STOP ACK 匹配（98/105、99/106），但 quiesce 在 stage 2 以 `-110` 超时。45 条 180B 回执中除 PERSIST 外全部归还，PERSIST `flags=19`（valid+fw_owned+release_requested）、`returned=0`、`rx_generation=0`。
 
 - **根因**：上游 `dec_ip_int_buf_tbl` 不含 PERSIST，它只在 close 时 force 销毁；本方案却单独发 HFI RELEASE 并等待 RELEASE_DONE，固件不会回该回包，1 秒硬件响应超时后判定失败。这是设计错误，不是硬件故障。
 - **修复**：PERSIST 移出 release 列表，改由校验通过的 CLOSE ACK retire；`iris_repeat_persist_unclaimable()` 只在 unknown 或 release_requested 时拒绝声明；回执 `flags` bit 5 记录 `close_retired`。物理存储全部保留，`IRIS_NATIVE_REPEAT_RECLAIM_ENABLED` 仍为 0。
-- **两次独立真机结果**：均 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，双 STOP ACK 匹配，三帧 PTS 1.0/1.04/1.08s 各 24576B，独立 FDE 验证两次通过；捕获 `b29e408d…`（101898B）与 `aa596c4f…`（101803B）。PERSIST 回执变为 `flags=35`（含 close_retired）、`request_generation=0`。
+- **多轮真机结果**：五次成功 RAM 捕获，均 `control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，双 STOP ACK 匹配，三帧 PTS 1.0/1.04/1.08s 各 24,576 B。捕获 SHA-256 依次为 `b29e408d…`（101,898B）、`b89f4f05…`（101,898B）、`aa596c4f…`（101,803B）、`5eb096a0…`（101,803B）、`d31a18ad…`（101,803B）；其中 r2/r3 两轮另有独立 FDE 验证记录，后两轮使用合并后的最终驱动（`196b3e55…`）。PERSIST 回执变为 `flags=35`（含 close_retired）、`request_generation=0`。
 - **边界**：这是 PERSIST 关闭退休的单变量条件验收。CLOSE ACK 原始字段仍不在回执内，完整 quiesce 外部证明不成立；安全回收、全核心 DMA 停止、close/reopen、长负载与原生影视任务均未验收。详见[PERSIST 生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
 
-### 自动重启到 fastboot：DT 方案已回退
+### 自动重启到 fastboot（已部署，两条路径实测）
 
-- **曾实测可行**：给生产 dtbo 加 `nvmem-reboot-mode` 节点并加载三个上游模块（`nvmem_qcom-spmi-sdam`、`reboot-mode`、`nvmem-reboot-mode`）后，`systemctl reboot --reboot-argument=bootloader` 把设备直接送入 fastboot。三者均为 `tristate`，编成模块即可，无需重编官方内核。DT 中 `sdam@7100/restart@48` 这个 nvmem cell 本来已存在并被 `reboot_reason` 引用，只缺一个写入方。
-- **实现缺陷已回退**：解析 dtbo 表时字段顺序错位且用了 44 字节步长（真实为 32），只识别出 4 个假条目；实际 entry 0 与 entry 1 相邻（间隔 0），扩大 entry 0 覆盖了 entry 1 前 177 字节。分区已用原始备份回退，但设备随后进入隔离 HOLD、串口静默，回读哈希未确认。
-- **离线替代已就绪**：整表重排脚本按真实 44 条目重算全部偏移与 `total_size`，结构自检显示无重叠、全部为合法 FDT，未上机。
+- **方案**：生产 dtbo 的 `sdam@7100` 内加 `reboot-mode` 节点，引用已存在的 `restart@48` cell；加载三个上游模块 `nvmem_qcom-spmi-sdam` / `reboot-mode` / `nvmem-reboot-mode`。三者均为 `tristate`，编成模块即可，**官方内核镜像未改动**。加载后 `reboot_modes` = `recovery bootloader`。
+- **dtbo 重排事故已收尾**：首版解析脚本字段顺序错位且用错 entry stride（44 而非真实 32），只识别出 4 个假条目；实际 entry 0 与 entry 1 相邻（间隔 0），扩大 entry 0 覆盖了 entry 1 前 177 字节，而当时的校验脚本共用同一错误假设，报出假阳性。已用原始备份回退，随后重写脚本（真实 `>8I` 头、stride=32、全部 44 条目、连续排布、重算每个偏移与 `total_size`），并用**独立**校验确认：只有 entry 0 的 DTS 变化、entry 1 字节完全一致、无重叠、全部合法 FDT。
+- **最终部署**：`359b5bc0…b125c25` 已写入 `dtbo_a` 与 `dtbo_b`，写后回读（含 `iflag=direct` 复核）双端一致；原始备份 `c78e3734…` 在手。
+- **两条路径均实测进入 fastboot**：生产系统 `systemctl reboot --reboot-argument=bootloader`；隔离镜像 HOLD 串口发 `CUPID-RECOVER` → 内嵌模块 `init_module(2)` → `reboot(RESTART2,"bootloader")`。主机只读确认 `designated_fastboot_confirmed=true`、`bootloader_interface=1`、`gadget_interfaces=0`。
 - **其余结论不变**：`fastboot boot` 报 `Not Found` 的真实原因是 `slot-retry-count:b=0`，`fastboot set_active b` 可恢复。
 
-### 串口恢复入口（未验证）
+### 串口恢复入口（已验证，限成功观测的 HOLD）
 
-为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。错误依次为 `pause()` 阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在 observer 子进程使用 flow 子进程设置的全局、把 fd 号写进共享内存（fd 是进程局部的，跨进程无效）。当前版本改用已有的 `SCM_RIGHTS` 通道，编译通过但未上机。该入口即使工作也只能重启到正常启动目标，不能进 fastboot（官方 Image 未编入 `CONFIG_NVMEM_REBOOT_MODE`）。详见[恢复入口状态](fnos-recovery-entry-status-20261116.md)。
+为免除现场按键而加入的串口触发重启入口经过五版迭代后在真机上生效。前四版的错误分别是 `pause()` 阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在 observer 子进程使用 flow 子进程设置的全局、把 fd 号写进共享内存（fd 是进程局部的，跨进程无效）。当前版本沿用已有的 `SCM_RIGHTS` 通道取独立 `F_DUPFD_CLOEXEC` 副本，固定字面量 `CUPID-RECOVER`，无 shell、无 argv、无 exec、无文件/网络访问、单次有效、`usleep(50000)` 有界轮询。
+
+实测：隔离镜像进入 HOLD 后，主机向串口写入 `CUPID-RECOVER`，`Android Bootloader Interface` 出现、隔离 gadget 消失，设备直接进入 fastboot。
+
+**限制**：`hf_receive_metadata_once` 要求 `confirmed==1`，因此只有观测成功的 HOLD 才拿到串口描述符；观测失败的 HOLD 入口永久失聪。这是设计限制，不是字面量问题。
 
 ### 未完成
 

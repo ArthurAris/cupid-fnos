@@ -28,7 +28,7 @@ FDE 验证器后继只放宽一处：回执 `flags` bit 5 仅对 PERSIST 允许�
 
 该结果是 PERSIST 关闭退休的单变量条件验收，不是安全回收、DMA 停止、close/reopen 或原生影视验收；`hardware_decode_verified`、`frame_acceptance_verified` 在准入清单与镜像清单中仍为 false。
 
-串口恢复入口五版迭代均未在真机成功，当前版本编译通过但未上机；该入口即使工作也只能重启到正常启动目标，不能进 fastboot。
+串口恢复入口第 5 版（`SCM_RIGHTS` + 内嵌三模块）已在真机生效：HOLD 状态下发送 `CUPID-RECOVER` 直接进入 fastboot。该入口只对观测成功的 HOLD 有效（需要 `confirmed==1` 才拿得到串口描述符）。
 
 ## Iris源码路径
 

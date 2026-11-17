@@ -1,6 +1,8 @@
 # PERSIST 生命周期修复验收 — 2026-11-16
 
-**范围：仅 PERSIST 关闭退休这一单变量修复。** 整体 fnOS 原生 H264/NV12 level5 仍未完成；恢复入口未验证；CLOSE ACK 字段仍缺失。本文只确认"PERSIST 不再走 HFI RELEASE、改由 CLOSE ACK retire"这一项，并给出两次独立真机复现。
+**范围：仅 PERSIST 关闭退休这一单变量修复。** 整体 fnOS 原生 H264/NV12 level5 仍未完成；CLOSE ACK 字段仍缺失。本文只确认"PERSIST 不再走 HFI RELEASE、改由 CLOSE ACK retire"这一项。
+
+**2026-11-17 更新**：该修复累计取得五轮成功 RAM 捕获（`b29e408d…`、`b89f4f05…`、`aa596c4f…`、`5eb096a0…`、`d31a18ad…`），均 `rc=0`/`stage=5`/`cpu_drained=1`/`orphaned=0`；其中后两轮使用合并后的最终驱动（`196b3e55…`）。本文此前"恢复入口未验证"的边界也已失效——第 5 版入口已在真机生效，详见[恢复入口迭代记录](fnos-recovery-entry-status-20261116.md)。
 
 ## 验收结论
 
@@ -110,7 +112,7 @@ PERSIST 回执由修复前的 `flags=19`、`request_generation=1`、`returned=0`
 
 ## 明确未完成
 
-- **恢复入口未验证**：四版迭代全部失败或未上机，详见[恢复入口迭代记录](fnos-recovery-entry-status-20261116.md)。
+- **恢复入口**：本文写作时尚未验证；2026-11-17 第 5 版已在真机生效，详见[恢复入口迭代记录](fnos-recovery-entry-status-20261116.md)。
 - CLOSE ACK 原始字段仍不在 180B 回执内，完整 quiesce 外部证明不成立。
 - 安全回收、全核心 DMA 停止、真实 close/reopen、30 轮、720p/1080p、600 秒、seek/flush/DRC/取消、自带 FFmpeg/影视后端、持久部署与重启回归均未验收。
 - `hardware_decode_verified`、`frame_acceptance_verified` 在 admission 与 manifest 中仍为 false；本文是条件证据验收，不是认证物理来源。

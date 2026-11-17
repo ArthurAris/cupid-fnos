@@ -2,7 +2,7 @@
 
 # 状态与验收范围
 
-更新时间：2026-11-16。这里是脱敏成果摘要，不是原始设备日志或认证物理证明。逐功能适配内容、实测数据和限制见 [功能明细](features.md)。
+更新时间：2026-11-17。这里是脱敏成果摘要，不是原始设备日志或认证物理证明。逐功能适配内容、实测数据和限制见 [功能明细](features.md)。
 
 ## fnOS 系统阶段
 
@@ -32,38 +32,56 @@
 
 逐allocation代际账本、当前提交/RELEASE身份校验、畸形回包严格分派与reclaim0取消入口守门均已实现和host测试。一次加固RAM实验在runner加载阶段超时，客户端未启动，未产生新帧或PERSIST回包。
 
-发现冷初始化持core mutex时，新session-held电源快路径再次取同一把锁；该helper又要求已有会话，与cold INIT无会话条件矛盾。单变量后继移除checked入口的这个shortcut，恢复完整checked provider初始化。普通O2、ASan/UBSan和GCC12目标构建通过，但**该修复镜像尚未上机**。loader诊断没有内核PC/锁现场，不能称直接观察到设备自锁。
+发现冷初始化持core mutex时，新session-held电源快路径再次取同一把锁；该helper又要求已有会话，与cold INIT无会话条件矛盾。单变量后继移除checked入口的这个shortcut，恢复完整checked provider初始化。普通O2、ASan/UBSan和GCC12目标构建通过；随后的RAM实验越过loader超时并解出三帧，证明该修复有效。loader诊断没有内核PC/锁现场，仍不能称直接观察到设备自锁。
 
 公开副本关闭执行门，是新的发布版本，不把原镜像hash当作这份副本已上机的证明。
 
-### PERSIST 生命周期修复（两次真机复现）
+### PERSIST 生命周期修复（多轮真机复现）
 
 冷初始化自锁修复后一次RAM实验首次越过此前的loader超时：客户端启动、解出三帧、双STOP ACK匹配（98/105、99/106），但quiesce在stage 2以`-110`超时。45条180B回执中APP INPUT 3/3、APP CAPTURE 16/16、BIN/COMV/NON_COMV/LINE各2、DPB 16全部归还，唯独PERSIST发出RELEASE请求后`returned=0`、`rx_generation=0`。
 
 根因：上游`dec_ip_int_buf_tbl`不含PERSIST，它只在close时force销毁；本方案却单独发HFI RELEASE，固件不会回该回包，1秒硬件响应超时后判定失败。这是设计错误，不是硬件故障。
 
-单变量修复把PERSIST移出release列表，改由校验通过的CLOSE ACK retire，回执`flags`bit 5记录该状态；物理存储全部保留，reclaim门仍为0。两次独立RAM观测均取得`control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，三帧PTS与oracle一致，独立FDE验证两次通过。
+单变量修复把PERSIST移出release列表，改由校验通过的CLOSE ACK retire，回执`flags`bit 5记录该状态；物理存储全部保留，reclaim门仍为0。五轮成功RAM捕获均取得`control_rc=0`、`lifecycle_stage=5`、`cpu_drained=1`、`orphaned=0`，三帧PTS与oracle一致；捕获SHA-256依次为`b29e408d…`、`b89f4f05…`、`aa596c4f…`、`5eb096a0…`、`d31a18ad…`，其中r2/r3另有独立FDE验证记录，后两轮使用合并后的最终驱动`196b3e55…`。
 
 **这是单变量生命周期修复的条件验收，不是安全回收、DMA停止、close/reopen或原生影视验收。** 详见[PERSIST生命周期修复验收](fnos-persist-fix-acceptance-20261116.md)。
 
-### 自动重启到 fastboot：DT 方案已回退（2026-11-17）
+### 自动重启到 fastboot：已完成并双槽部署（2026-11-17）
 
-曾确认可行：给生产 dtbo 加 `nvmem-reboot-mode` 节点 + 加载三个上游模块（SDAM / reboot-mode / nvmem-reboot-mode）后，`systemctl reboot --reboot-argument=bootloader` 实测把设备直接送入 fastboot，无需人工按键。这三个驱动都是 `tristate`，编成模块即可，不需要重编官方内核。
+给生产 dtbo 的 `sdam@7100` 加 `reboot-mode` 节点，再加载三个上游模块（SDAM / reboot-mode / nvmem-reboot-mode），`systemctl reboot --reboot-argument=bootloader` 实测把设备直接送入 fastboot，无需人工按键。三个驱动都是 `tristate`，编成模块即可，官方内核镜像未改动。
 
-但把同一节点写进 dtbo 的实现有缺陷：解析脚本用错 dtbo 表步长（44 而非真实 32），只看到 4 个假条目，把 entry 0 扩大后覆盖了相邻 entry 1 的前 177 字节。分区已用原始备份回退（`fastboot flash` 写入回执 OKAY），**但设备随后落入隔离 HOLD、串口静默，回读哈希未确认**。
+中途出过一次事故：首版 dtbo 解析脚本用错表步长（44 而非真实 32），只看到 4 个假条目，把 entry 0 扩大后覆盖了相邻 entry 1 的前 177 字节，且校验脚本共用同一错误假设而误判通过。已用原始备份回退；随后重写重排脚本（真实 `>8I` 头、stride=32、全部 44 条目、重算全部偏移与 `total_size`），并用独立校验确认只有 entry 0 的 DTS 变化、entry 1 字节完全一致、无重叠、全部合法 FDT。
 
-正确的整表重排脚本已完成离线实现与结构自检（44 条目、无重叠、偏移与 total_size 全部重算），未上机。详见[dtbo 修改事故与回退](fnos-dtbo-incident-20261117.md)与[全自动重启到 fastboot](fnos-auto-reboot-to-fastboot-20261117.md)。
+最终 `359b5bc0…b125c25` 已写入 `dtbo_a` 与 `dtbo_b`，写后回读（含 `iflag=direct`）两端一致。详见[dtbo 修改事故与回退](fnos-dtbo-incident-20261117.md)与[全自动重启到 fastboot](fnos-auto-reboot-to-fastboot-20261117.md)。
 
-期间查明 `fastboot boot` 失败的另一个原因是已知的 `slot-retry-count:b=0`，`fastboot set_active b` 可恢复——与本文档既有的 B 槽 `slot-successful` 未持久置位问题一致。
+期间查明 `fastboot boot` 失败的另一原因是已知的 `slot-retry-count:b=0`，`fastboot set_active b` 可恢复——与本文档既有的 B 槽 `slot-successful` 未持久置位问题一致。
 
-### 串口恢复入口：未验证
+### 串口恢复入口：已在真机生效（2026-11-17）
 
-为免除现场按键而加入的串口触发重启入口经过五版迭代，**至今没有任何一版在真机上成功触发重启**。发现的错误依次为`pause()`阻塞（串口输入不产生信号）、描述符取自只在成功路径赋值的变量、在observer子进程使用flow子进程设置的全局、把fd号写进共享内存（fd是进程局部的，跨进程无效）。当前版本改用已有的`SCM_RIGHTS`通道，编译通过但未上机。
+五版迭代后，串口触发的重启入口在真机上成功。前四版的错误依次是 `pause()` 阻塞、描述符取自只在成功路径赋值的变量、在 observer 子进程使用 flow 子进程设置的全局、把 fd 号写进共享内存（fd 是进程局部的）。当前版本沿用已有的 `SCM_RIGHTS` 通道取独立副本，固定字面量 `CUPID-RECOVER`，无 shell / argv / exec / 文件或网络访问，单次有效。
 
-该入口即使工作也只能重启到正常启动目标，不能进fastboot：官方Image未编入`CONFIG_NVMEM_REBOOT_MODE`，且历史记录已证实`systemctl reboot --reboot-argument=bootloader`会回原系统。详见[恢复入口状态](fnos-recovery-entry-status-20261116.md)。
+实测：隔离镜像进入 HOLD 后，主机向串口写入 `CUPID-RECOVER`，`Android Bootloader Interface` 出现、隔离 gadget 消失，设备直接进入 fastboot。
+
+**限制**：`hf_receive_metadata_once` 要求 `confirmed==1`，只有观测成功的 HOLD 才拿得到串口描述符；观测失败的 HOLD 入口失聪。这是设计限制。
+
+### 全自动实验闭环（2026-11-17 验证）
+
+从 fastboot 出发的完整循环已无需任何人工按键：
+
+```
+fastboot boot r6 → 隔离系统 → USB v2 协议 + 60 秒观测 → 硬解三帧
+→ quiesce rc=0/stage=5 → HOLD → 串口 CUPID-RECOVER
+→ 内嵌三模块 init_module → reboot(RESTART2,"bootloader") → fastboot
+```
+
+主机只读确认 `designated_fastboot_confirmed=true`。详见[全自动硬解循环打通](fnos-full-auto-decode-loop-20261117.md)。
 
 ## 待完成
 
-原始CLOSE ACK字段导出与关联、CPU响应排空的物理证明、实际安全回收、真实close/reopen、30轮会话、720p/1080p与至少600秒原生负载、seek/flush/DRC/错误取消、影视选择Iris且无CPU静默回退，以及持久部署/正常重启/回滚和系统回归。
+**实验基础设施已就绪**：全自动闭环（fastboot → RAM 启动 → 观测 → HOLD → `CUPID-RECOVER` → fastboot）与 PERSIST 关闭退休均已验证，不再是人力和阻塞项。
+
+**level 5 仍未完成的实质内容**：原始CLOSE ACK字段导出与关联、CPU响应排空的物理证明、实际安全回收与 free、真实 close/reopen、30 轮会话、720p/1080p、至少 600 秒连续负载、seek/flush/DRC/错误取消、fnOS 自带 FFmpeg 与影视真实任务、无 CPU 静默回退证明，以及生产侧模块持久化、正常重启回归与回滚。
+
+**当前最大缺口**：CLOSE ACK 原始字段不在 180 字节回执内，因此完整 quiesce 仍只有内部状态证明，没有固件侧外部证明。
 
 HEVC、硬件编码和NPU是独立能力，不在当前通过范围。

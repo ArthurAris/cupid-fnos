@@ -98,3 +98,14 @@ fastboot flash dtbo_a 原始 dtbo 分区备份
 3. 继续硬解验收
 
 在此之前不做任何分区写入。
+
+## 后续（2026-11-17）：已部署并双路径验证
+
+本文写作时"未上机"的重排镜像随后完成部署：
+
+- 写入 `dtbo_a` 与 `dtbo_b`，写后回读（含 `iflag=direct` 复核）两端一致，均为 `359b5bc0…b125c25`。
+- 生产系统 `systemctl reboot --reboot-argument=bootloader` 实测进入 fastboot。
+- 隔离镜像 HOLD 串口发 `CUPID-RECOVER` 实测进入 fastboot。
+- 主机只读确认 `designated_fastboot_confirmed=true`。
+
+因此上文"设备可控性 / 回读未确认 / 正确重排脚本未上机"三行的状态已全部转为已验证。回退方式仍是写回原始 dtbo 分区备份（`c78e3734…`）。详见[全自动硬解循环打通](fnos-full-auto-decode-loop-20261117.md)。

@@ -114,28 +114,33 @@ of_node/name  →  reboot-mode
 
 **设备直接进了 fastboot，全程无人工按键。**
 
-## 2026-11-17 后续：dtbo 修改已回退
+## 2026-11-17 后续：正确重排的 dtbo 已部署，全链路实测通过
 
-为实现隔离镜像内的自动重启，尝试把同一个 `reboot-mode` 节点写进生产 dtbo 后，解析脚本用错了 dtbo 表步长（44 而非 32），覆盖了相邻条目 177 字节。分区已用原始备份 `fastboot flash` 回退，**但设备随后落回隔离 HOLD、串口静默，回读哈希未确认**。
+中途出现过一次事故：首版解析脚本用错表步长（44 而非 32），只看到 4 个假条目，entry 0 扩大时覆盖了 entry 1 的 177 字节，且当时的校验脚本复用了同一错误假设而误判通过。事故与恢复完整记录见[dtbo 修改事故与回退](fnos-dtbo-incident-20261117.md)。
 
-因此本文此前的"已写入 dtbo_a"结论**不再成立**：新 DT 已被回退，`reboot bootloader` 在当前设备上不可用，直到重新部署一份正确重排的 dtbo。
+事故后的正确做法与最终状态：
 
-正确的整表重排脚本已完成离线实现与结构自检（44 条目、无重叠、偏移与 total_size 全部重算），但未上机。事件详情见[dtbo 修改事故与回退](fnos-dtbo-incident-20261117.md)。
+- 重写重排脚本，按真实字段顺序 `magic, total_size, header_size, entry_size, entry_count, entries_offset, page_size, version` 解析，按真实 stride=32 遍历全部 **44** 个条目。
+- 独立校验（不复用重排代码路径）：表头除 `total_size` 外全部不变，只有 entry 0 的 DTS 不同，**entry 1 字节完全一致**，无重叠，全部为合法 FDT。
+- `dtbo_a` 与 `dtbo_b` 均已部署为 `359b5bc0…b125c25`，写入后回读（含 `iflag=direct` 复核）双端一致；原始备份 `c78e3734…` 在手。
 
-同一节点若要进隔离镜像，需要先恢复设备访问并回读确认 dtbo 状态。
+部署后的实测结果：
+
+| 路径 | 结果 |
+|---|---|
+| 生产系统 `systemctl reboot --reboot-argument=bootloader` | USB 出现 `Android Bootloader Interface`，`getvar product` = `cupid` |
+| 隔离镜像 HOLD 串口发 `CUPID-RECOVER` | 内嵌三模块加载成功 → `reboot(RESTART2,"bootloader")` → fastboot |
+| 主机只读确认 | `designated_fastboot_confirmed=true`，`bootloader_interface=1`，`gadget_interfaces=0` |
+
+**因此本文此前"新 DT 已被回退、`reboot bootloader` 不可用"的结论已作废。** 当前双槽 dtbo 均带 `reboot-mode` 节点，两条重启路径都可用，且从 fastboot 出发的完整实验循环（fastboot → RAM 启动 → 硬解观测 → HOLD → `CUPID-RECOVER` → fastboot）无需任何人工按键。闭环详情见[全自动硬解循环打通](fnos-full-auto-decode-loop-20261117.md)。
 
 ## 遗留与边界
 
-- **模块尚未持久化**：当前是运行时 `insmod`，重启后失效。要长期生效需要把三个模块和加载逻辑纳入启动流程（生产 systemd 服务，或隔离镜像内嵌）。隔离镜像的内嵌版本已构建（init 995,704 B 含前两个模块），但本轮的 SDAM 模块还没加进去。
-- **`reboot bootloader` 依赖 dtbo_a 的改动**：该分区已写入新 DT，回退方式是写回 原始 dtbo 分区备份（`c78e3734…`）。
+- **模块尚未持久化**：生产系统仍是运行时 `insmod`，重启后失效。隔离镜像已内嵌全部三个模块（init 995,800 B），但生产侧需要 systemd 服务或 initramfs 前置加载。
+- **`reboot bootloader` 依赖 dtbo 改动**：回退方式是写回原始 dtbo 分区备份（`c78e3734…`），`dtbo_b` 同理。
 - **SPMI 写封锁仍存在**：dmesg 有 `disallowed SPMI write to sid=0, addr=0x6146`，与 `known-issues.md` 第 14 条的 RTC 写封锁同类。这不影响 `restart@48`（0x48）的写入路径——`reboot bootloader` 已实测成功，但 0x6146 那条封锁的语义尚未查明。
-- 未做：模块持久化、`mode-recovery` 验证、从隔离镜像内直接 `reboot bootloader` 的端到端测试。
+- 未做：模块持久化、`mode-recovery` 验证。
 
 ## 私有材料
 
-- 私有材料目录：新 DT 镜像与 build.json
-- 私有写入记录：写入与回读记录
-- 私有模块传输记录：模块传输与加载记录
-- 私有权验记录：reboot-mode 类与 DT 绑定核验
-- 私有实测记录：`reboot bootloader` 实测记录
-- 原始 dtbo 分区备份：原始分区备份（回退用）
+原始设备日志、镜像、分区备份、写入/回读记录与模块传输记录只留私有，不随仓库公开。公开副本只保留脱敏结论与哈希。
