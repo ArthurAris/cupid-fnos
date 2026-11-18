@@ -240,3 +240,15 @@ init（PID1）是**用户态**程序：`pr_info` 不可用；其 stderr 走控�
 本次已给 `fde_write_same_fd` 的四个退出点（begin / timeout / pollerr / short）
 加了 `fprintf(stderr,...)`，但结论是：**这些日志默认不可见**，
 下一轮应改为写 `/dev/kmsg` 并把 `fde_write` 加入筛选键。
+
+### kmsg 通道已接，但本轮未产出 FDG
+
+已把 `fde_write_same_fd` 的四个退出点（begin / timeout / pollerr / short）
+改走 `/dev/kmsg`，并把 `fde_write` 加入客户端内核日志筛选键，重新构建上机。
+本次运行接收端只生成 `capture.fde`，**没有产出 `diagnostic.fdg`**，
+因此内核日志里的 `fde_write` 行仍未被带出。
+
+这说明失败路径没有走到"发诊断"的分支（`diag` 由 init 在特定条件下发送）。
+下一步要么让失败路径必定发诊断，要么改用串口控制台输出该日志。
+
+**传输问题本身未解决**：`capture_bytes` 仍为 4096，`failure_phase=receiver-protocol`。
