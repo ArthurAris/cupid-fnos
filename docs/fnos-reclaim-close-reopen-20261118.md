@@ -397,3 +397,30 @@ owner 计数导出、诊断日志与 fd 静音。
 ### 下一格
 
 在同一基线上只加 **PERSIST retire 清 `fw_owned`/`QUEUED`**，其余不变，再上机。
+
+## 十九、二分收敛到客户端：同一驱动树，换客户端即复现（2026-11-18）
+
+在「门 + owner 计数 + fd 静音 + 驱动日志」这棵已验证可完整传输的树上，
+只替换客户端：
+
+| 客户端 | capture | observation_completed |
+|---|---|---|
+| 验收版（775,640 B） | **101,803 / 101,898** | True |
+| 循环版（852,080 B，`--sessions 1`） | **4,096** | False |
+
+驱动、init、接收端、参数（除 `--sessions`）完全相同。
+
+已排除的客户端内改动：
+
+- `--sessions 1` 时**不进循环分支**（代码在 `if(sessions>1)` 内）；
+- `final_session` 额外 trace 行已移除；
+- stderr 的 `IOCTLFAIL` 探针（对 EAGAIN/ENOENT 也会打印，曾怀疑刷爆日志）已移除，
+  重新构建后仍是 4,096。
+
+因此剩余差异只在循环版客户端本身新增的代码/体积（fork/wait、meminfo、
+`loop_emit`、`capture_canonical`、`quiet_ioctl`、以及 +94 KB 体积）。
+
+**下一步**：以验收版客户端源码为基线，逐项加入而不改逻辑——
+先只加 `--sessions` 参数解析（忽略其值），再测；再逐项加 helper。
+由于 `--sessions 1` 不执行循环体，若"只加参数解析"就复现，则问题在
+参数处理或二进制布局，而不在循环逻辑。
