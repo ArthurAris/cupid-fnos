@@ -591,3 +591,38 @@ capture_bytes = 4,096   observation_completed = False
 2. bootloader 按 board-id 选了另一条 dtbo 条目，需进一步定位条目选择规则。
 
 在此之前，生产侧 FFmpeg 解码**无法启动**（没有视频设备）。
+
+## 二十四、定位基线 DTB 来源：不在已知的任何分区（2026-11-18）
+
+为弄清生产 DT 从哪里来，把所有已知分区备份都扫了一遍，找
+`video-codec@aa00000` / `reboot-mode` / `nvmem-reboot-mode` 这几个字符串：
+
+| 来源 | video-codec 节点 | reboot-mode |
+|---|---|---|
+| `private/backup/*.img`（42 个分区） | **无** | **无** |
+| `dtbo_a.img` 44 个条目 | **无** | **无** |
+| `boot_a.img` / `boot_b.img` | 无（含 `ANDROID!` 但无 FDT） | 无 |
+| `vendor_boot_a/b`（`VNDRBOOT`，含多个 FDT） | 无 | 无 |
+| 运行中的 `/proc/device-tree` | **有** | **有**（值为 `00 00 00 02`，非我们写入的 `77 66 55 01`） |
+| 我们新写的 dtbo 条目 0 | 有（新增子树） | 有 |
+
+即：**运行中 DT 的 video-codec 节点来自一个尚未定位的基线 DTB**，它既不在
+dtbo 的 44 个条目里，也不在 boot/vendor_boot/任意分区备份里。
+
+### 直接推论
+
+1. 生产侧"改 dtbo 即可启用 codec"的路径**不成立**（已双槽写入并回读验证，
+   运行 DT 毫无变化，连根级标记 `cupid-vcodec-mark` 都未出现）；
+2. 要在生产启用 codec，必须找到那个基线 DTB 所在的分区/镜像并直接改它，
+   或按 bootloader 的条目选择规则命中正确的 dtbo 条目；
+3. 检索范围还应包括：fnOS 生产 boot 镜像本体（不在 `private/backup` 中）、
+   `system`/`vendor` 镜像内的 DT、以及 `devcfg*` 分区。
+
+### 当前状态（生产侧）
+
+- 驱动已能传输、校验并 `insmod` 成功（`cupid_qcom_iris 208896`）；
+- `ffmpeg 8.1.1-mediasrv` 在位；
+- **无 `/dev/video*`**，因此 FFmpeg 尚无法跑真解码。
+- 已落 flash 的 dtbo = `9ac743e6…`（含标记子树），原值备份：`359b5bc0…`。
+
+**这一步需要用户决策**：是否允许修改生产 boot 分区（192 MiB，A/B）以放行 codec。
