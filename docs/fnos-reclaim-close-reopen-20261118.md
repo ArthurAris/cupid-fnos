@@ -548,3 +548,46 @@ capture_bytes = 4,096   observation_completed = False
 **建议路径**（需要用户决策）：把验收从"隔离镜像 + USB 信封"转向
 **生产 fnOS 上的真实负载验证**（FFmpeg/影视 + 内核日志/计数器），
 那条路径不依赖这个脆弱通道，也更贴近 level 5 的原始定义。
+
+## 二十三、生产侧调查：dtbo 写入成功但运行 DT 不变（2026-11-18）
+
+转入生产 fnOS 验证（路线：驱动 + 自带 FFmpeg），逐项实测：
+
+**已确认**
+
+- 生产系统：内核 `6.18.18.c1147-trim`、`cupid-fnos-v1`、串口 root shell 可用；
+- `ffmpeg 8.1.1-mediasrv` 已安装（`/usr/bin/ffmpeg`）；
+- 发行版自带 `qcom-iris.ko` 存在但只匹配 sm8550/8650/8750，
+  `modprobe` 成功却不绑定，无 `/dev/video*`；
+- 通过 RNDIS HTTP（`172.16.42.1:8099`）把我们自己的模块（12,075,712 B，
+  sha `d61a00a1…`）传到设备，`sha256sum` 校验一致；补齐
+  `v4l2_mem2mem`/`videobuf2_dma_contig`/`mdt_loader` 依赖后
+  **`insmod` 成功**（`cupid_qcom_iris 208896` 已加载）；
+- 节点存在但 `status = "disabled"`，因此无 platform device、无驱动绑定。
+
+**dtbo 改动（已写入并回读验证）**
+
+- 按已验证的重排流程重建 entry 0：新增 `fragment@9001`（target-path）、
+  根级标记 `cupid-vcodec-mark`、以及根级 `soc@0` 子树；
+- 独立验证：44 条目、无重叠、条目 1..43 字节完全不变，entry 0 仅增 9 行；
+- 双槽 `dd conv=fsync` 写入后 `iflag=direct` 回读，`sdf18`/`sdf47` 均为
+  `9ac743e6e2dbd8d8ee5e58095ee6c803840793d37d40f2a2395ece5a4b9e0898`，与源一致。
+
+**但重启后**：
+
+```
+/proc/device-tree/cupid-vcodec-mark        → 不存在
+/proc/device-tree/soc@0/video-codec@aa00000/status → 仍为 disabled
+/proc/device-tree/reboot-mode/mode-bootloader → 00 00 00 02（≠ 我们写入的 77 66 55 01）
+```
+
+**结论**：生产启动并未使用我们刚写入的 dtbo 条目内容，或其 overlay 不解析
+`target-path`/根级子树。即**通过 dtbo 改生产 DT 这条路在当前镜像上无效**。
+
+剩余两个可能（需要用户决策）：
+
+1. 生产 DT 实际来自 boot 镜像内的 dtb（改 dtbo 无效）——那就必须改 `boot_b` 里的
+   dtb，涉及大分区写入与回滚风险；
+2. bootloader 按 board-id 选了另一条 dtbo 条目，需进一步定位条目选择规则。
+
+在此之前，生产侧 FFmpeg 解码**无法启动**（没有视频设备）。
