@@ -155,3 +155,21 @@ cycle 0..4: decode_rc=0 frames=3 stage=5 cpu_drained=1 orphaned=0
 
 设备侧能力已实测：无按键回 fastboot、HOLD 自兜底、完整释放、重开、
 连续多轮 decode→close→reopen 全绿。缺少的只是"把多轮结果装进验收信封"这一步。
+
+## 十二、进一步定位（同日补充）
+
+子会话的 ioctl 行已被 `quiet_ioctl` 抑制（生成源码 line 97 带 `!quiet_ioctl` 判断，
+子进程在 `decode()` 前置 1），因此 trace 里的 CAPTURE DQ 只可能来自末轮。
+
+结合「`--sessions 1`（等价单会话）曾有 FDE、`--sessions 2` 无 FDE」，
+更可能的结论是：**末轮自身解不出帧**（count=0 → `EPROTO`），而不是行数重复。
+
+即：子会话完成了完整释放（`repeat_close done owners=0/0`），但紧接着的末轮虽然
+`open` 成功（`get ret=0`、`owned ret=0`），配置/取流阶段失败。这与"释放后 core 未
+重新初始化（power on / INIT / OPEN 握手）"一致——当前 open 路径因 `core_ready`
+仍为真而跳过重初始化。
+
+**下一步（明确的实施项）**：会话级 teardown 之后，为下一次 open 走一次 core 级
+重新初始化；或在释放时把 core 归零到 init-only 起点，由 open 重新拉起。
+
+在此之前，多轮会话的"设备侧能力"已被证实，但**验收信封只覆盖单会话**。
