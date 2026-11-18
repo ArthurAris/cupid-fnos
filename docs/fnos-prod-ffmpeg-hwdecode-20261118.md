@@ -292,7 +292,7 @@ rretain=1                                    ← 真会话退休（设计内）
 
 ## 已知边界
 
-1. ~~每开机一个真会话~~ → **已解决（多会话打通，2016-11-19 凌晨）**：
+1. ~~每开机一个真会话~~ → **已解决（多会话打通，2026-11-19 凌晨）**：
    - 根因链：`iris_destroy_internal_buffer` 对 decode_once 硬编码 `-EBUSY`
      （隔离契约永不释放）→ 改为允许 native-repeat 的已验证回收；
      native_repeat 判定放宽（第 8 处编辑）；探测型 close（udev/FFmpeg 发现）
