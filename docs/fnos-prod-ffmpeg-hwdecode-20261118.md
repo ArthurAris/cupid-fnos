@@ -19,6 +19,44 @@ Exiting with exit code 0
 - 一次性语义符合设计：本次 FFmpeg 是该开机的**唯一真会话**，结束后 `retain_close`
   退休 core；第二次运行得到预期的 `ESHUTDOWN`。重复解码需重启（见“已知边界”）。
 
+## 持久化与开机自动装载（2026-11-18 晚补）
+
+三个模块固定落在 `/usr/local/lib/cupid-hwdecode/`（sha：driver `7bb3be3d…`、
+runner `c532663d…`、videocc `17a7849d…`），固件在 `/lib/firmware/qcom/vpu/`，
+脚本 `/usr/local/sbin/cupid-iris-load.sh` + 单元
+`/etc/systemd/system/cupid-iris-load.service`（`enabled`，`Type=oneshot` +
+`RemainAfterExit`，幂等：已加载直接退出）。开机 journal（三次启动逐字节一致，
+`boot2-unit.log` 与 `boot3-unit.log` sha 同为 `c0ec7c84…`）：
+
+```
+cupid-iris-load: dependencies ok
+cupid-iris-load: modules loaded
+cupid-iris-load: ok: qcom-iris-decoder on /dev/video0
+```
+
+即：**重启后零手动干预自动出现 `/dev/video0`，直接可解码**（三次开机验证：
+boot1 720p 会话 IRQ+534、boot2 1080p、boot3 600s，均在自动装载后完成）。
+
+### fastboot 全自动救援（retry 耗尽路径）
+
+B 槽 retry 每次启动 -1；实验中耗尽到 0 落入 fastboot（无需物理按键）。观察脚本
+的轮询在 fastboot 出现时自动执行 `fastboot set_active b`（0→7 复位）+
+`fastboot reboot` 回 fnOS，随后任务继续——本次 600s 验收就是被它救回后完成的，
+**全程零物理干预**。
+
+## 分辨率与负载验收
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| 720p 10s H264 | 300/300 帧、0 错、**34×**、0.29s | `ff5.log`（speed=34x） |
+| 720p 开机回归会话 | IRQ **2→536（+534）**，自动装载后 | `ff7.log`+`irqb/irfa` |
+| **1080p** 10s H264 | 1920x1080，300 帧、0 错、1.06× 实时 | `ff8.log`（Input 行 1920x1080） |
+| **600 秒持续负载** | **frame=18000、time=00:10:00.00、fps=30、speed=1x、0 错**；IRQ **2→31,471（+31,469）** | `ff9.log` / `ff9-final.txt` |
+| 二次运行（一次性语义） | 预期 `ESHUTDOWN` | `ff6.log` |
+
+600s 输入用 concat demuxer 把 10s 1080p 片拼 60 份（`loop600.txt`）+
+`-re` 实时喂入，单会话完成（`-stream_loop` 在该组合下不循环，已弃用）。
+
 ## 生产 DT 手术（boot_b 两次就地 8 字节补丁）
 
 生产 DT 里 `video-codec@aa00000` 与 `clock-controller@aaf0000`（videocc，提供
@@ -186,13 +224,26 @@ rretain=1                                    ← 真会话退休（设计内）
 
 | 文件 | sha256 | 内容 |
 |---|---|---|
-| `ff5.log` | `9957a84d…` | FFmpeg `-loglevel debug` 全输出（Using device、300 帧、speed=34x、exit 0） |
+| `ff5.log` | `9957a84d…` | 720p `-loglevel debug` 全输出（Using device、300 帧、speed=34x、exit 0） |
 | `ff6.log` | `b8eb1067…` | 第二次运行，ESHUTDOWN（一次性语义验证） |
-| `trace-ffrun4.txt` | `6518229e…` | kretprobe 全时间线 |
-| `irqb.txt` / `irfa.txt` | `7414bab0…` / `dedf8df2…` | iris IRQ 2 → 533 |
+| `ff7.log` | `21556b59…` | 开机自动装载后的 720p 会话（IRQ+534） |
+| `ff8.log` | `e3c4ca99…` | 1080p 解码（1920x1080、300 帧、1.06×） |
+| `ff9.log` / `ff9-final.txt` | `320070e8…` | **600s：frame=18000、time=00:10:00、speed=1x** |
+| `boot1/2/3-unit.log` | `32e3e727…` / `c0ec7c84…`(×2) | 三次开机 systemd 自动装载 journal（后两次逐字节一致） |
+| `trace-ffrun4.txt` | `6518229e…` | kretprobe 全时间线（probe→reopen→S_FMT→REQBUFS→STREAMON→退休） |
+| `irqb.txt` / `irfa.txt` | `d2d3e07d…` / `8ec50f5d…` | 600s 前后 iris IRQ 2→31471 |
 
-本机：`private/fnos/.build/evid4.txt`、`ffrun*` 系列脚本与输出；
+本机：`private/fnos/.build/evid*.txt`、`ffrun*/bootchk*/load600*` 系列脚本与输出；
 备份 `private/backup/bootb-prod-20261118/`。
+
+## 工具学（本次踩过的两个 PowerShell 坑，留档防复犯）
+
+1. **大小写不敏感变量互踩**：`$out = Drain …` 会覆盖参数 `$Out`，导致结尾
+   `WriteAllText` 拿到含控制字符的串口文本 → “路径中具有非法字符”，**脚本跑完
+   却不落盘**（此前多轮“神秘 ArgumentException”的统一根因）；`$fb = & $FB devices`
+   同理毁掉 fastboot 路径变量。后续脚本一律用 `$raw`/`$fbOut`。
+2. **PS 5.1 `2>&1` + `$ErrorActionPreference='Stop'`**：原生程序（fastboot）的
+   stderr 行会被包装成终止性 `NativeCommandError`。对 fastboot 调用去掉 `2>&1`。
 
 ## 已知边界
 
@@ -206,8 +257,10 @@ rretain=1                                    ← 真会话退休（设计内）
    fastboot；恢复法 `fastboot set_active b`（本次实测 retry 0→7）。
 4. FFmpeg 收尾的 `V4L2 failed to unmap … buffers` 与 REQBUFS count=0 返回 -22 为
    已知无害噪声（退出码仍为 0）。
-5. 装载链目前是手动脚本（`/data/tmp/bringup/` 材料齐备）；开机自动装载（systemd
-   单元）尚未做，是“生产持久化与重启回归”的一部分。
+5. ~~装载链手动~~ → **已自动化**：systemd `cupid-iris-load` 开机自动装载，
+   三次重启回归通过（见上文“持久化与开机自动装载”）。剩余验证面：影视 App
+   UI 层走同一 mediasrv/ffmpeg 核心的端到端任务，以及 `--sessions 30` 多会话
+   信封（需 native-repeat 路径，独立工作项）。
 
 ## 复现要点（一次做对清单）
 
