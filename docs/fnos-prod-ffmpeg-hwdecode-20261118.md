@@ -52,10 +52,27 @@ B 槽 retry 每次启动 -1；实验中耗尽到 0 落入 fastboot（无需物�
 | 720p 开机回归会话 | IRQ **2→536（+534）**，自动装载后 | `ff7.log`+`irqb/irfa` |
 | **1080p** 10s H264 | 1920x1080，300 帧、0 错、1.06× 实时 | `ff8.log`（Input 行 1920x1080） |
 | **600 秒持续负载** | **frame=18000、time=00:10:00.00、fps=30、speed=1x、0 错**；IRQ **2→31,471（+31,469）** | `ff9.log` / `ff9-final.txt` |
+| **CABAC+B 帧复杂流** | 600/600 帧、20s、**32.2×**、0.62s、0 错；IRQ **1→1,072（+1,071）** | `ff10.log` |
+| 留存内容 | 全部素材（720p/1080p/CABAC/concat 清单）在设备 `/data/tmp/bringup/` | sha 见对应 `.build/genx*.txt` |
 | 二次运行（一次性语义） | 预期 `ESHUTDOWN` | `ff6.log` |
 
 600s 输入用 concat demuxer 把 10s 1080p 片拼 60 份（`loop600.txt`）+
 `-re` 实时喂入，单会话完成（`-stream_loop` 在该组合下不循环，已弃用）。
+CABAC 片：`testsrc2` 20s 720p、`cabac=1:bframes=3:ref=4:8x8dct=1:me=hex:g=60`
+（sha `05086f30…`），产物 `real-cabac720.mp4`。
+
+### 运行门槛：电量怎么读
+
+本机**没有** `/sys/class/power_supply/battery`；电量在
+**`/sys/class/power_supply/qcom-battmgr-bat/capacity`**（`status`、
+`voltage_now` 同目录；USB 输入在 `qcom-battmgr-usb/`）。AGENTS 的“≥40%”门槛
+一律用该路径。2026-11-18 晚一次“四路失联”即电量耗尽（capacity 一直是读不到的
+空值导致没预警）；充电后 capacity=48、status=Charging 即恢复。
+
+### 构建可复现
+
+同源重建（`make-prod-driver.py` → `build-reclaim.py`）产物与现役部署模块
+**逐字节一致**：`7bb3be3decc0c369cb4d355bca40396d8a437122472f34303f204a36db599c0c`。
 
 ## 生产 DT 手术（boot_b 两次就地 8 字节补丁）
 
@@ -229,7 +246,8 @@ rretain=1                                    ← 真会话退休（设计内）
 | `ff7.log` | `21556b59…` | 开机自动装载后的 720p 会话（IRQ+534） |
 | `ff8.log` | `e3c4ca99…` | 1080p 解码（1920x1080、300 帧、1.06×） |
 | `ff9.log` / `ff9-final.txt` | `320070e8…` | **600s：frame=18000、time=00:10:00、speed=1x** |
-| `boot1/2/3-unit.log` | `32e3e727…` / `c0ec7c84…`(×2) | 三次开机 systemd 自动装载 journal（后两次逐字节一致） |
+| `ff10.log` | `0398c32b…` | **CABAC+B 帧：600/600 帧、32.2×、0 错** |
+| `boot1/2/3/5-unit.log` | `32e3e727…` / `c0ec7c84…`(×2) | 多次开机 systemd 自动装载 journal |
 | `trace-ffrun4.txt` | `6518229e…` | kretprobe 全时间线（probe→reopen→S_FMT→REQBUFS→STREAMON→退休） |
 | `irqb.txt` / `irfa.txt` | `d2d3e07d…` / `8ec50f5d…` | 600s 前后 iris IRQ 2→31471 |
 
@@ -261,11 +279,11 @@ rretain=1                                    ← 真会话退休（设计内）
    三次重启回归通过（见上文“持久化与开机自动装载”）。剩余验证面：影视 App
    UI 层走同一 mediasrv/ffmpeg 核心的端到端任务，以及 `--sessions 30` 多会话
    信封（需 native-repeat 路径，独立工作项）。
-6. **2026-11-18 21:32 一次“共同失联”**：装载自检刚通过、解码任务尚未开始时
-   USB gadget 当场消失，随后 COM/fastboot/USB-IP/WiFi 四路 30+ 分钟全无，需物理
-   恢复。无证据指向硬解链（自检状态与前几次开机逐项一致）；现象与主线
-   `known-issues` 记录的双通道丢失同类（根因未定位）。当次 CABAC 复杂流会话
-   因此未能开始。
+6. **2026-11-18 21:32 一次“共同失联”——实为电池耗尽**（非挂死）：装载自检刚
+   通过、解码任务尚未开始时 USB gadget 消失，随后四路 30+ 分钟全无；充电后
+   正常启动查明是电量耗尽。**电量节点：`/sys/class/power_supply/qcom-battmgr-bat/capacity`**
+   （本机无 `battery` 节点，此前 40% 门槛读不到）。恢复实测 capacity=48、
+   status=Charging、USB 输入 5.08 V；当次 CABAC 会话顺延到次日完成（见下）。
 
 ## 复现要点（一次做对清单）
 
