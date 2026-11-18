@@ -328,3 +328,39 @@ tty 描述符），重新构建上机后 `capture_bytes` 仍为 4096。
 
 下一步应按此二分：先用「旧客户端 + 新驱动」跑一次（去掉 `--sessions` 参数），
 再用「新客户端 + 旧驱动」跑一次，即可定位到其一。
+
+## 十七、传输可靠性测定：链路稳定，失败在新驱动侧（2026-11-18）
+
+**已验收镜像连跑 3 次，全部成功**：
+
+```
+run 1: capture 101898  frame_content_consistent True
+run 2: capture 101803  frame_content_consistent True
+run 3: capture 101898  frame_content_consistent True
+```
+
+同一台主机、同一接收端、同一 USB 链路。因此 ~100 KB 的 FDE 传输**是稳定的**，
+此前"链路 flaky"的假设被推翻。
+
+交叉二分（每组都重新构建并上机）：
+
+| 客户端 | init | 驱动 | 结果 |
+|---|---|---|---|
+| 旧 | 验收版 | **新** | capture 0 |
+| 旧 | **新** | 新 | capture 4096 |
+| **新** | **新** | 新 | capture 4096 |
+| 验收版（全部旧） | | | **101898 / 101803 / 101898（3/3 成功）** |
+
+结论：唯一贯穿所有失败配置的变量是**新驱动模块**。
+`--sessions`、fork 循环、恢复入口、HOLD 兜底、fd 静音、块间延迟都已单独排除。
+
+### 下一步（明确的单变量驱动二分）
+
+以 CLOSE ACK 驱动（`02407c6c`，验收版）为基线，每次只开一个改动：
+
+1. 只把 `IRIS_NATIVE_REPEAT_RECLAIM_ENABLED` 由 0 改为 1；
+2. 若仍失败，回退 1，只保留「PERSIST retire 清 `fw_owned`/`QUEUED`」；
+3. 再测「`kfree` 前摘链」；
+4. 最后测「诊断日志 / `dma_buf_put` 命名空间」。
+
+每步都需连带更新 pin/契约/准入（现有 `pipeline-all.sh` 流程可复用）。
