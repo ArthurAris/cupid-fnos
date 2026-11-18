@@ -74,6 +74,23 @@ CABAC 片：`testsrc2` 20s 720p、`cabac=1:bframes=3:ref=4:8x8dct=1:me=hex:g=60`
 同源重建（`make-prod-driver.py` → `build-reclaim.py`）产物与现役部署模块
 **逐字节一致**：`7bb3be3decc0c369cb4d355bca40396d8a437122472f34303f204a36db599c0c`。
 
+### 影视 App 现状与接入路径（本次查明，未做 UI e2e）
+
+- 影视 = Web 前端（`trim.media`，端口 8005）+ 后端 `trim-media` + 媒体核心
+  `mediasrv`（`/usr/trim/bin/mediasrv`，同一 `8.1.1-mediasrv` FFmpeg 构建）。
+- **`mediasrv` 二进制自带全部 V4L2 M2M 解码器名**（`h264_v4l2m2m`、`hevc_v4l2m2m`、
+  `vp8/vp9/mpeg*_v4l2m2m` 等），并有 `HlsTranscoder`/`VideoTranscoder` 与
+  `avcodec_find_decoder_by_name`；前端"转码解码方式"枚举**包含 `V4L2_M2M`**
+  （soft/qsv/vaapi/nvdec/rkmpp/vulkan/v4l2_m2m），即影视具备把转码解码指到
+  我们驱动的原生选项。
+- 但当前**媒体库为空**（`trimmedia.db` 的 `item`/`item_media` 均 0 条），播放走
+  直连（浏览器端解码）；要触发设备侧硬解，需要：建媒体库 → 上传浏览器不能直放的
+  片源（如 MPEG-2/HEVC 非直连组合）→ 播放设置里把“转码解码方式”设为 V4L2_M2M
+  → 播放触发 HLS 转码。相关 API 面：`/api/v1/play/index`、`/app/internal/service/play`
+  （内部服务走 Unix socket，带 `sys_secret` token 机制）。
+- 这是独立的“影视转码接硬解”工作项（应用层配置 + 库扫描 + 强制转码触发），
+  与本文件的驱动/解码栈验收解耦；本次硬解成果不依赖它。
+
 ## 生产 DT 手术（boot_b 两次就地 8 字节补丁）
 
 生产 DT 里 `video-codec@aa00000` 与 `clock-controller@aaf0000`（videocc，提供
