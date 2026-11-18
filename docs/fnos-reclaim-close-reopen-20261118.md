@@ -364,3 +364,36 @@ run 3: capture 101898  frame_content_consistent True
 4. 最后测「诊断日志 / `dma_buf_put` 命名空间」。
 
 每步都需连带更新 pin/契约/准入（现有 `pipeline-all.sh` 流程可复用）。
+
+## 十八、单变量二分第一格：只开回收门 → 传输完整（2026-11-18）
+
+基线 = 已验收配置（init `55d9f4fb`、客户端 `b0f27756` 775,640 B、无 `--sessions`），
+驱动在 `iris_core.h` 只改一行：
+
+```
+#define IRIS_NATIVE_REPEAT_RECLAIM_ENABLED 0  →  1
+```
+
+（外加一处编译期必需的 `MODULE_IMPORT_NS("DMA_BUF")`，否则模块无法链接。）
+
+驱动 `e80816b6`，镜像 `039df2c4`，63,348,736 B，独立验证通过。
+
+**上机结果**：
+
+```
+capture.fde     = 101,898 字节
+total           = 101898, trace = 27802
+observation_completed = True
+error = None, failure_phase = None
+```
+
+**结论：回收门本身不破坏 FDE 传输。** 此前所有失败版本的共同点因此缩小到
+后加的改动：PERSIST retire（清 `fw_owned`/`QUEUED`）、`kfree` 前摘链、
+owner 计数导出、诊断日志与 fd 静音。
+
+注意：主机包装报的是 `phase=receiver-wait`，那是主机侧等待逻辑的产物；
+接收端本身的 `receiver.json` 显示完整完成。
+
+### 下一格
+
+在同一基线上只加 **PERSIST retire 清 `fw_owned`/`QUEUED`**，其余不变，再上机。
