@@ -227,3 +227,16 @@ FDE1  header=0x120  total=0x00018dfe (101,886)
 打印 `pos/errno`，直接看是 EIO 还是 ETIMEDOUT。
 
 当前候选已回退到 `--sessions 1` 的一致状态，旧验收镜像保持可用。
+
+### 诊断通道的限制（记录以免重复踩坑）
+
+init（PID1）是**用户态**程序：`pr_info` 不可用；其 stderr 走控制台而非接收端，
+因此 init 内部（例如 `fde_write_same_fd` 的退出点）的日志**不会**出现在
+`receiver-stderr.txt` 或 FDG 里。
+
+要让 init 侧日志进入可见证据，唯一可行通道是 `/dev/kmsg` + 客户端已实现的
+内核日志转储（需把 `fde_write` 加入客户端的筛选关键词）。
+
+本次已给 `fde_write_same_fd` 的四个退出点（begin / timeout / pollerr / short）
+加了 `fprintf(stderr,...)`，但结论是：**这些日志默认不可见**，
+下一轮应改为写 `/dev/kmsg` 并把 `fde_write` 加入筛选键。
