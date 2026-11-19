@@ -108,12 +108,31 @@ CABAC 片：`testsrc2` 20s 720p、`cabac=1:bframes=3:ref=4:8x8dct=1:me=hex:g=60`
   `/var/run/trim_sac.socket`；NAS UI 需 NAS 管理员登录，与影视账号不同）。
   直插库表的绕过尝试失败（影视库列表经 mediasrv/index 层，纯 sqlite 行不
   生效；测试行已清理，DB 恢复 0/0）。
-- **剩余唯一人工步骤**（二选一）：
-  1. 在 NAS UI（管理员）→ 系统设置 → 应用 → 影视 → **允许访问的文件夹**
-     → 添加 `/vol2/1000/media-lab`（素材已放好并已给 trim-media ACL）；
-  2. 或提供 NAS 管理员密码，由我完成上述授权。
-  之后我可一口气完成：影视 UI 建库（浏览器已登录）→ 打开"启用 GPU 加速
-  转码" → 播放素材强制 HLS 转码 → IRQ/日志取证 → 文档推送。
+- **已完成（2026-11-19 上午，取得影视与 NAS 凭据后）**：NAS 管理员登录 →
+  系统设置 → 应用 → 影视 → 访问权限 → 添加 `/vol2/1000/media-lab` ✓；
+  影视 UI 建库 "Lab"（其他视频类型）✓ 扫描出素材 ✓；设置页开启
+  **"启用 GPU 加速转码"** 并在"首选 GPU"下拉中选中
+  **`GPU1 V4L2 Mem2Mem Video Codec`** ✓（conf 变为
+  `enable:true + selectedGpuList:[{sequence:1,vendorId:65535}]`）；
+  mediasrv 重启后日志确认 `gpu enable: true, selected sequence list: [1]`，
+  且启动时即探测到我们的设备：`v4l2 mem2mem in working, decoder
+  '/dev/video0', dec 0x46, enc 0x0`。
+- **设备端硬解接入的最终边界（实测）**：播放"480p 强制转码"会触发 HLS
+  转码（浏览器侧 `src` 由 `/media/range` 直连切为 MSE/blob），但 mediasrv 的
+  转码 worker 在 40 s 内**从未对 `/dev/video0` 发起任何驱动调用**
+  （kprobe 全空），主进程只报 `receive_from_worker timeout`；同时该 worker
+  的 GPU 转码需要**同卡硬件编码**，而本驱动只暴露解码节点
+  （启动探测 `enc 0x0`）。另外在 GPU 关闭时的 CPU 转码路径（08:42 实测）
+  本身就报 `avcodec_open2` 失败并伴随 `h264_rkmpp Failed to init MPP
+  context`（Rockchip 解码器探测在本机必败）——**即该影视版本在本机的转码
+  能力原本就不可用，非本驱动引入**。
+- 结论：**"影视 App 经设备硬件解码"在本版本 mediasrv 上不可达**（工作线程
+  不打开 V4L2 解码器 + 无硬件编码端点）。达到它的前置条件是：mediasrv
+  修复其 V4L2 GPU worker，或驱动补齐 iris 编码节点（VEN）供硬编使用。
+  设备侧硬解本身已由系统 FFmpeg（同一媒体构建）全面验证，不依赖影视。
+- **现场已还原**：`mediasrv.conf` 恢复 `gpu.enable:false`、mediasrv 已按
+  systemd 重启（日志 `gpu enable: false`）；影视登录/NAS 授权/媒体库 "Lab"
+  保留（库内为测试素材，可随时删除）；测试用 localhost 转发器仅在本机。
 
 ## 生产 DT 手术（boot_b 两次就地 8 字节补丁）
 
