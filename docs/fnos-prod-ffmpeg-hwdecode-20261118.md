@@ -93,10 +93,27 @@ CABAC 片：`testsrc2` 20s 720p、`cabac=1:bframes=3:ref=4:8x8dct=1:me=hex:g=60`
 - 登录通道侦察（2026-11-19）：`POST /v/api/v1/login` **免签名**，仅校验
   账号密码（错误码 `code:-15`）；账号哈希为 **argon2id**（m=65536,t=3,p=1），
   不可逆。临时改哈希登录实验未通过（应用/媒体栈凭据缓存），已**完整恢复原
-  哈希并核实服务正常**（临时材料仅存 `private/`）。结论：影视 API/UI 的
-  e2e 需要**用户提供一次影视账号密码**（唯一人工输入）；其后路径已就绪：
-  localhost 转发器（`.build/trimfwd.py`）→ 登录拿 token → 建库/上传 → 播放
-  设置选 `V4L2_M2M` → HLS 转码 → 计数器取证。
+  哈希并核实服务正常**（临时材料仅存 `private/`）。
+- 取得影视账号密码后实测：`login` → `code:0, data.token`（32 hex）；后续请求
+  `Authorization: <裸 token>`（无 Bearer 前缀）。**多数数据接口另需 `sign`**
+  （`item/list`、`mdb/scan` 等返回 `code:5000 invalid sign`；`task/running`
+  裸 token 可用）——签名在前端 JS 计算，未逆向。
+- **转码总闸已定位**：`/usr/trim/etc/mediasrv.conf` =
+  `{"cpu":{"allowDecoding":true},"cache":"/vol2/mediasrv.transcode","gpu":{"enable":false,"selectedGpuSequence":0}}`；
+  对应影视 UI 设置页开关 **"启用 GPU 加速转码"**（当前关）。前端转码解码
+  方式枚举含原生 **`V4L2_M2M`**。
+- **库创建的最后一道门 = NAS 层应用文件夹授权**：向导提示“请先前往 NAS
+  【系统设置 - 应用 - 影视】中设置允许影视应用访问的文件夹”，对应
+  `authDirList`（由 `trim_app_center` 管理，unix socket
+  `/var/run/trim_sac.socket`；NAS UI 需 NAS 管理员登录，与影视账号不同）。
+  直插库表的绕过尝试失败（影视库列表经 mediasrv/index 层，纯 sqlite 行不
+  生效；测试行已清理，DB 恢复 0/0）。
+- **剩余唯一人工步骤**（二选一）：
+  1. 在 NAS UI（管理员）→ 系统设置 → 应用 → 影视 → **允许访问的文件夹**
+     → 添加 `/vol2/1000/media-lab`（素材已放好并已给 trim-media ACL）；
+  2. 或提供 NAS 管理员密码，由我完成上述授权。
+  之后我可一口气完成：影视 UI 建库（浏览器已登录）→ 打开"启用 GPU 加速
+  转码" → 播放素材强制 HLS 转码 → IRQ/日志取证 → 文档推送。
 
 ## 生产 DT 手术（boot_b 两次就地 8 字节补丁）
 
